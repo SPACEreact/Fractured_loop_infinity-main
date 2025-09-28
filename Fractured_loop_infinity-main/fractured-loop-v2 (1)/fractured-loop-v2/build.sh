@@ -5,13 +5,13 @@ echo "Starting build process..."
 
 # Install dependencies with proper error handling
 echo "Installing dependencies..."
-npm install || { echo "Error: npm install failed. Check dependencies."; exit 1; }
+npm ci || { echo "Error: npm ci failed. Check dependencies."; exit 1; }
 
 # Check Node.js version compatibility
 echo "Verifying Node.js version..."
 NODE_VERSION=$(node -v)
-if [[ "$NODE_VERSION" < "v16" ]]; then
-  echo "Error: Node.js version is incompatible. Expected >=v16. Found: $NODE_VERSION"
+if [[ "$NODE_VERSION" < "v20.19" ]]; then
+  echo "Error: Node.js version is incompatible. Expected >=v20.19. Found: $NODE_VERSION"
   exit 1
 fi
 
