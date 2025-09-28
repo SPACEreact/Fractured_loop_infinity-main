@@ -1,5 +1,3 @@
-import { NodeGraph } from '../types';
-
 // API key provided by user
 const GEMINI_API_KEY = 'AIzaSyBD5wS3hwL4zRiAs5tAaxfH8YNZ3efqT3U';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
