@@ -117,3 +117,9 @@ export const CheckCircleIcon: React.FC<{ className?: string }> = ({ className })
     <circle cx="12" cy="12" r="10"/>
   </svg>
 );
+
+export const PaperAirplaneIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+  </svg>
+);

@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import type { BuildType, Workflow, BuildContext, Seed } from './types';
 import { BUILDS, WORKFLOWS, TAG_GROUPS, NODE_TEMPLATES } from './constants';
 import LandingPage from './components/LandingPage';
-import Sandbox from './components/Sandbox';
+import Workspace from './components/Workspace';
 import BuildScreen from './components/BuildScreen';
 import QuantumBox from './components/QuantumBox';
 
@@ -14,7 +14,7 @@ const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>('landing');
   
   // State for classic build system
-  const [sandboxContext, setSandboxContext] = useState<Record<string, string>>({});
+  const [sandboxContext] = useState<Record<string, string>>({});
   const [buildContext, setBuildContext] = useState<BuildContext>({});
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null);
   const [activeBuildType, setActiveBuildType] = useState<BuildType>(BUILDS[0].id);
@@ -76,10 +76,6 @@ const App: React.FC = () => {
     setAppMode('quantum_box');
   };
 
-  const handleExitSandbox = (finalContext: Record<string, string>) => {
-    setSandboxContext(finalContext);
-    setAppMode('landing');
-  };
 
   const handleGoBackToLanding = () => {
     setActiveWorkflow(null);
@@ -124,12 +120,8 @@ const App: React.FC = () => {
         );
       case 'sandbox':
         return (
-          <Sandbox
-            context={sandboxContext}
-            onContextChange={setSandboxContext}
-            onExit={handleExitSandbox}
-            onGoBackToLanding={handleGoBackToLanding}
-            activeWorkflow={activeWorkflow}
+          <Workspace
+            onGoHome={handleGoBackToLanding}
             {...commonWeightProps}
           />
         );

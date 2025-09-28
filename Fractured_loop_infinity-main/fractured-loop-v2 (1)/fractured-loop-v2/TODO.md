@@ -1,16 +1,15 @@
-# UI Revamp Plan
+# TODO.md - Fractured Loop UI Implementation
 
-## Tasks
-- [x] Update index.css for premium Apple-like design
-- [x] Make QuantumBox responsive and fix overlaps
-- [x] Enhance LandingPage for better layout and responsiveness
-- [x] Update App.tsx for responsive wrapper
-- [x] Add tooltips and visibility to Quantum Box features
-- [ ] Test and fix any remaining issues
+## Completed
+- [x] Analyze project structure and existing components
+- [x] Confirm CSS styles (gradient-bg, glass-card, btn-primary, etc.) are implemented in index.css
 
-## Details
-1. index.css: Add SF Pro font, subtle gradients, better shadows, responsive utilities.
-2. QuantumBox.tsx: Responsive layout, tooltips, z-index fixes, sun options visibility.
-3. LandingPage.tsx: Responsive grid, hover effects.
-4. App.tsx: Responsive container.
-5. Install tooltip library if needed.
+## In Progress
+- [x] Update components/LandingPage.tsx: Minor edits for exact button texts/descriptions, add gradient-overlay, ensure animations
+- [ ] Update components/QuantumBox.tsx: Make nodes glass-card, enhance connections (glow/dash), add tooltips, implement Sun Options panel, integrate gradients/animations
+- [ ] Create components/Workspace.tsx: Implement Sandbox Mode chat interface with input/output areas, message bubbles, weighting sidebar
+- [ ] Create components/BuildScreen.tsx: Implement guided workflow with progress indicator, question cards, navigation, weighting sidebar
+- [ ] Update App.tsx: Add routing for BuildScreen, pass props for workflows/tagWeights
+- [ ] Update types.ts: Add types for BuildScreen questions if needed
+- [ ] Test locally: Run npm run dev, verify screens and interactions
+- [ ] Update this TODO.md with progress

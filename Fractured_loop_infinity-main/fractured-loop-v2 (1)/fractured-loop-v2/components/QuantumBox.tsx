@@ -6,14 +6,6 @@ import { NODE_TEMPLATES, NodeTemplate, TAG_GROUPS } from '../constants';
 import { generateFromQuantumBox } from '../services/geminiService';
 import { ArrowUturnLeftIcon, SparklesIcon, CubeTransparentIcon } from './IconComponents';
 
-// --- Helper Functions & Constants ---
-const CATEGORY_COLORS: Record<string, string> = {
-    'Core': 'bg-indigo-500',
-    'Story': 'bg-emerald-500',
-    'Shot': 'bg-amber-500',
-    'Video': 'bg-sky-500',
-    'Edit': 'bg-rose-500',
-};
 
 // --- Sub-components ---
 
@@ -26,21 +18,19 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
     weight: number;
     isWeightingEnabled: boolean;
 }) => {
-    const color = CATEGORY_COLORS[node.category] || 'bg-gray-500';
     const glowIntensity = isWeightingEnabled ? Math.max(0, (weight - 1.0) * 15) : 0;
     const glowColor = 'rgba(129, 140, 248, 0.7)'; // indigo-400
 
     return (
         <div
-            className={`absolute rounded-full shadow-2xl flex items-center justify-center text-center transition-all duration-150 group z-10`}
+            className={`absolute glass-card flex items-center justify-center text-center transition-all duration-150 group z-10 float ${isSelected ? 'ring-2 ring-indigo-400' : ''}`}
             style={{
                 left: node.position.x,
                 top: node.position.y,
                 width: node.size,
                 height: node.size,
                 borderColor: isSelected ? '#818cf8' : '#4b5563',
-                borderWidth: 2,
-                backgroundImage: `radial-gradient(circle, ${color} 0%, #1f2937 85%)`,
+                borderWidth: 1,
                 boxShadow: `0 0 ${glowIntensity}px 4px ${glowColor}`,
             }}
             onMouseDown={(e) => onMouseDown(e, node.id)}
@@ -62,7 +52,7 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
                 title="Output Connector"
             />
 
-            <div className="font-bold text-gray-100 p-2 cursor-move select-none" style={{ fontSize: Math.max(8, node.size / 8) }}>
+            <div className="font-bold text-gray-100 p-2 cursor-move select-none text-gradient-accent" style={{ fontSize: Math.max(8, node.size / 8) }}>
                 {node.name}
             </div>
 
@@ -72,6 +62,11 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
                 onMouseDown={(e) => onResizeStart(e, node.id)}
                 title="Resize Node"
             />
+
+            {/* Tooltip on hover */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                {node.description}
+            </div>
         </div>
     );
 });
@@ -87,20 +82,27 @@ const ConnectionComponent = React.memo<{
     const strokeColor = type === 'harmony' ? 'rgb(59 130 246)' : 'rgb(239 68 68)';
     const midX = (fromPos.x + toPos.x) / 2;
     const midY = (fromPos.y + toPos.y) / 2; // Simple midpoint, not perfect for bezier
+    const glowClass = type === 'harmony' ? 'glow-indigo' : 'glow-fuchsia';
+    const dashArray = type === 'tension' ? '5,5' : 'none';
 
     return (
         <g>
-            <path d={path} stroke={strokeColor} strokeWidth="3" fill="none" className="pointer-events-none" />
+            <path d={path} stroke={strokeColor} strokeWidth="3" fill="none" className={`pointer-events-none ${glowClass}`} strokeDasharray={dashArray} />
             <g transform={`translate(${midX - 10}, ${midY - 10})`} className="cursor-pointer" onClick={() => onToggle(id)}>
                 <rect width="20" height="20" rx="5" fill={strokeColor} />
                 <text x="10" y="14" textAnchor="middle" fill="white" fontSize="12">{type === 'harmony' ? 'H' : 'T'}</text>
+            </g>
+            {/* Tooltip on hover */}
+            <g transform={`translate(${midX - 20}, ${midY - 30})`} className="opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                <rect width="40" height="20" rx="5" fill="rgba(0,0,0,0.8)" />
+                <text x="20" y="14" textAnchor="middle" fill="white" fontSize="10">{type === 'harmony' ? 'Harmony' : 'Tension'}</text>
             </g>
         </g>
     );
 });
 
 
-const NodeLibraryPanel = ({ onDragStart, onPreview }: { 
+const NodeLibraryPanel = ({ onDragStart, onPreview }: {
     onDragStart: (e: React.DragEvent<HTMLDivElement>, template: NodeTemplate) => void;
     onPreview: (template: NodeTemplate) => void;
 }) => {
@@ -112,7 +114,7 @@ const NodeLibraryPanel = ({ onDragStart, onPreview }: {
     }, {} as Record<string, NodeTemplate[]>);
 
     return (
-        <aside className="bg-gray-800/50 w-64 p-4 flex flex-col fixed inset-y-0 left-0 overflow-y-auto custom-scrollbar z-30">
+        <aside className="glass-card w-64 p-4 flex flex-col fixed inset-y-0 left-0 overflow-y-auto custom-scrollbar z-30">
             <div className="flex items-center gap-2 px-2 mb-4">
                 <CubeTransparentIcon className="w-8 h-8 text-indigo-400" />
                 <h1 className="text-xl font-bold text-gray-100">Tag Library</h1>
@@ -125,7 +127,7 @@ const NodeLibraryPanel = ({ onDragStart, onPreview }: {
                             {templates.map(template => (
                                 <div
                                     key={template.type}
-                                    className="bg-gray-700 p-3 rounded-md cursor-grab active:cursor-grabbing hover:bg-gray-600 transition-colors"
+                                    className="glass-card p-3 cursor-grab active:cursor-grabbing hover-lift transition-all"
                                     draggable
                                     onDragStart={(e) => onDragStart(e, template)}
                                     onClick={() => onPreview(template)}
@@ -151,15 +153,15 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
     if (!node && !previewTemplate) {
         return <div className="text-center text-sm text-gray-500 mt-8 p-4">Select a planet on the canvas or an item from the library to see details.</div>;
     }
-    
+
     if (previewTemplate && !node) {
         return (
              <div className="space-y-4 p-2">
-                <div className="bg-gray-700/50 p-3 rounded-lg">
+                <div className="glass-card p-3">
                     <h3 className="font-bold text-gray-100">{previewTemplate.name}</h3>
                     <p className="text-sm text-gray-400 mt-1">{previewTemplate.description}</p>
                 </div>
-                <div className="text-center text-xs text-gray-500 p-2 bg-gray-800 rounded-md">
+                <div className="text-center text-xs text-gray-500 p-2 glass-card">
                     Drag this item from the library onto the canvas to use it.
                 </div>
             </div>
@@ -169,12 +171,12 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
     if (node) {
         return (
             <div className="space-y-4 p-2">
-                <div className="bg-gray-700/50 p-3 rounded-lg">
+                <div className="glass-card p-3">
                     <h3 className="font-bold text-gray-100">{node.name}</h3>
                     <p className="text-sm text-gray-400 mt-1">{node.description}</p>
                 </div>
 
-                <div className="bg-gray-700/50 p-3 rounded-lg">
+                <div className="glass-card p-3">
                     <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Importance (Planet Size)</label>
                     <input
                         type="range"
@@ -185,8 +187,8 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
                         className="w-full"
                     />
                 </div>
-                
-                <div className="bg-gray-700/50 p-3 rounded-lg">
+
+                <div className="glass-card p-3">
                     <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Value</label>
                     {node.nodeType === 'text' || node.nodeType === 'input' ? (
                         <textarea
@@ -205,10 +207,10 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
                             {node.options.map((opt: {value: string; label: string}) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                     ) : (
-                            <div className="text-sm text-gray-500 p-2 bg-gray-800 rounded-md">This node's value is determined by its inputs or settings.</div>
+                            <div className="text-sm text-gray-500 p-2 glass-card">This node's value is determined by its inputs or settings.</div>
                     )}
                 </div>
-                    <button 
+                    <button
                     onClick={() => onNodeDelete(node.id)}
                     className="w-full text-center bg-rose-800/50 text-rose-300 hover:bg-rose-700/50 font-bold py-2 px-4 rounded-lg transition-colors"
                 >
@@ -217,7 +219,7 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
             </div>
         );
     }
-    
+
     return null;
 };
 
@@ -305,6 +307,7 @@ const QuantumBox = (props: QuantumBoxProps) => {
     const [harmonyLevel, setHarmonyLevel] = useState<number>(50);
     const [activeTab, setActiveTab] = useState('inspector');
     const [isPromptVisible, setIsPromptVisible] = useState(false);
+    const [isSunOptionsVisible, setIsSunOptionsVisible] = useState(false);
 
     const interaction = useRef<{ type: 'move' | 'resize' | 'connect', nodeId: string; offsetX: number; offsetY: number, startX: number, startY: number, originalSize?: number } | null>(null);
     const [drawingConnection, setDrawingConnection] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
@@ -502,14 +505,14 @@ const deleteNode = useCallback((nodeId: string) => {
             return;
         }
         
-        const result = await generateFromQuantumBox(graph, nodeContext, harmonyLevel, tagWeights, styleRigidity, outputType);
+        const result = await generateFromQuantumBox(nodeContext, harmonyLevel, tagWeights, styleRigidity, outputType);
         setGeneratedOutput(result);
         setIsGenerating(false);
     };
     
     const handleSunClick = () => {
         if (generatedOutput && !isGenerating) {
-            setIsPromptVisible(true);
+            setIsSunOptionsVisible(true);
         }
     };
     
@@ -576,8 +579,7 @@ const deleteNode = useCallback((nodeId: string) => {
                 </div>
 
                 <div
-                    className="fixed md:left-64 left-0 right-0 md:right-80 top-14 bottom-0 bg-gray-900 overflow-hidden"
-                    style={{backgroundImage: 'radial-gradient(circle at center, #1f2937 0%, #111827 60%)'}}
+                    className="fixed md:left-64 left-0 right-0 md:right-80 top-14 bottom-0 gradient-bg gradient-overlay overflow-hidden"
                     ref={editorRef}
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
@@ -657,11 +659,11 @@ const deleteNode = useCallback((nodeId: string) => {
             </div>
 
             {isPromptVisible && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/60 flex items-center justify-center z-40"
                     onClick={() => setIsPromptVisible(false)}
                 >
-                    <div 
+                    <div
                         className="bg-gray-800 border border-indigo-500 rounded-xl p-6 w-full max-w-2xl shadow-2xl flex flex-col"
                         onClick={e => e.stopPropagation()}
                     >
@@ -671,15 +673,43 @@ const deleteNode = useCallback((nodeId: string) => {
                             dangerouslySetInnerHTML={{ __html: renderOutput() }}
                         />
                         <div className="flex justify-end gap-4 mt-4 flex-shrink-0">
-                             <button 
+                             <button
                                 onClick={copyToClipboard}
                                 className="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500 transition-colors"
                             >
                                 Copy
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setIsPromptVisible(false)}
                                 className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-500 transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isSunOptionsVisible && (
+                <div
+                    className="fixed inset-0 bg-black/60 flex items-center justify-center z-40"
+                    onClick={() => setIsSunOptionsVisible(false)}
+                >
+                    <div
+                        className="glass-card p-6 w-full max-w-md shadow-2xl flex flex-col slide-up"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <h3 className="font-bold text-xl text-gray-100 mb-4 flex-shrink-0 text-gradient-accent">Sun Options</h3>
+                        <div className="space-y-4">
+                            <button
+                                onClick={() => { setIsPromptVisible(true); setIsSunOptionsVisible(false); }}
+                                className="btn-primary w-full text-center font-bold py-3 px-4 rounded-lg"
+                            >
+                                View Generated Output
+                            </button>
+                            <button
+                                onClick={() => setIsSunOptionsVisible(false)}
+                                className="btn-secondary w-full text-center font-bold py-3 px-4 rounded-lg"
                             >
                                 Close
                             </button>
