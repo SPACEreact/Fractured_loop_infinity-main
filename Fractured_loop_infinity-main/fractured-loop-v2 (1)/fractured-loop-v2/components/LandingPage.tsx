@@ -1,84 +1,88 @@
-
 import React from 'react';
 import type { Workflow } from 'types';
 import { FracturedLoopLogo, ChatBubbleLeftRightIcon, ArrowRightOnRectangleIcon, CubeTransparentIcon } from './IconComponents';
 
 interface LandingPageProps {
-  workflows: Workflow[];
-  onStartSandbox: () => void;
-  onStartWorkflow: (workflow: Workflow) => void;
-  onStartQuantumBox: () => void;
+  onEnterQuantumBox: () => void;
+  onEnterWorkspace: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ workflows, onStartSandbox, onStartWorkflow, onStartQuantumBox }) => {
+const LandingPage = ({ onEnterQuantumBox, onEnterWorkspace }: LandingPageProps) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-white p-4 md:p-8 overflow-y-auto gradient-bg gradient-overlay">
-      <header className="text-center mb-12 md:mb-16 fade-in">
-        <FracturedLoopLogo className="w-20 h-20 md:w-28 md:h-28 text-indigo-400 mx-auto mb-4 md:mb-6 float pulse-glow" />
-        <h1 className="text-4xl md:text-6xl font-bold text-gradient mb-4">AI Assistant Director</h1>
-        <p className="text-lg md:text-2xl text-gradient-accent">Fractured Loop</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 flex flex-col">
+      <header className="p-6 flex justify-between items-center">
+        <FracturedLoopLogo className="w-12 h-12" />
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onEnterWorkspace}
+            className="flex items-center gap-2 text-gray-300 font-medium py-2 px-4 rounded-lg hover:bg-gray-700 hover:text-white transition-colors duration-200"
+            title="Enter Workspace"
+          >
+            <ChatBubbleLeftRightIcon className="w-5 h-5" />
+            <span>Workspace</span>
+          </button>
+          <button
+            onClick={onEnterQuantumBox}
+            className="flex items-center gap-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-500 transition-colors duration-200"
+            title="Enter Quantum Box"
+          >
+            <CubeTransparentIcon className="w-5 h-5" />
+            <span>Quantum Box</span>
+          </button>
+        </div>
       </header>
 
-      <main className="w-full max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
+      <main className="flex-1 flex items-center justify-center p-6">
+        <div className="text-center max-w-4xl">
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 text-gradient">
+            Fractured Loop Infinity
+          </h1>
+          <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+            A visual AI prompt generation tool that lets you build complex concepts through interconnected nodes.
+            Create, connect, and generate stunning AI content with unprecedented control.
+          </p>
 
-          {/* Card 1: Sandbox Mode */}
-          <div className="glass-card hover-lift rounded-2xl p-6 md:p-8 flex flex-col items-start transition-all duration-500 slide-up">
-            <div className="icon-container p-3 md:p-4 rounded-2xl mb-4 md:mb-6">
-              <ChatBubbleLeftRightIcon className="w-8 h-8 md:w-10 md:h-10 text-indigo-400 glow-indigo" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gradient mb-3 md:mb-4">Sandbox Mode</h2>
-            <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-6 md:mb-8 flex-grow">
-              Free-form brainstorming with AI assistance.
-            </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
-              onClick={onStartSandbox}
-              className="btn-primary w-full text-center font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl text-base md:text-lg"
+              onClick={onEnterQuantumBox}
+              className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-4 px-8 rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all duration-200 transform hover:scale-105 shadow-lg"
             >
-              Start Sandbox
+              <CubeTransparentIcon className="w-6 h-6" />
+              <span>Enter Quantum Box</span>
+              <ArrowRightOnRectangleIcon className="w-6 h-6" />
+            </button>
+            <button
+              onClick={onEnterWorkspace}
+              className="flex items-center gap-3 bg-gray-700/50 text-gray-300 font-medium py-4 px-8 rounded-xl hover:bg-gray-600/50 hover:text-white transition-all duration-200 transform hover:scale-105 border border-gray-600"
+            >
+              <ChatBubbleLeftRightIcon className="w-6 h-6" />
+              <span>Explore Workspace</span>
             </button>
           </div>
 
-          {/* Card 2: Workflows */}
-          <div className="glass-card hover-lift rounded-2xl p-6 md:p-8 flex flex-col items-start transition-all duration-500 slide-up">
-            <div className="icon-container p-3 md:p-4 rounded-2xl mb-4 md:mb-6">
-                <ArrowRightOnRectangleIcon className="w-8 h-8 md:w-10 md:h-10 text-fuchsia-400 glow-fuchsia" />
+          <div className="mt-12 grid md:grid-cols-3 gap-6 text-left">
+            <div className="glass-card p-6 rounded-xl">
+              <CubeTransparentIcon className="w-8 h-8 text-indigo-400 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Visual Node System</h3>
+              <p className="text-gray-300">
+                Build complex concepts by connecting nodes. Each node represents a different aspect of your creative vision.
+              </p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gradient mb-3 md:mb-4">Guided Workflows</h2>
-            <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-4 md:mb-6 flex-grow">
-              Follow a step-by-step process for specific outcomes like character design or shot creation.
-            </p>
-            <div className="space-y-3 md:space-y-4 w-full">
-              {workflows.map((workflow) => (
-                <button
-                  key={workflow.id}
-                  onClick={() => onStartWorkflow(workflow)}
-                  className="btn-secondary w-full text-left p-3 md:p-4 rounded-xl group hover-lift"
-                >
-                  <p className="font-bold text-white mb-1 group-hover:text-fuchsia-300 transition-colors text-sm md:text-base">{workflow.name}</p>
-                  <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors text-xs md:text-sm">{workflow.description}</p>
-                </button>
-              ))}
+            <div className="glass-card p-6 rounded-xl">
+              <ChatBubbleLeftRightIcon className="w-8 h-8 text-purple-400 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">AI-Powered Generation</h3>
+              <p className="text-gray-300">
+                Leverage advanced AI to transform your node networks into detailed prompts for images, videos, and more.
+              </p>
+            </div>
+            <div className="glass-card p-6 rounded-xl">
+              <ArrowRightOnRectangleIcon className="w-8 h-8 text-pink-400 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Infinite Possibilities</h3>
+              <p className="text-gray-300">
+                Explore endless creative combinations. Weight nodes, adjust connections, and discover new creative horizons.
+              </p>
             </div>
           </div>
-
-          {/* Card 3: Quantum Box */}
-          <div className="glass-card hover-lift rounded-2xl p-6 md:p-8 flex flex-col items-start transition-all duration-500 slide-up">
-            <div className="icon-container p-3 md:p-4 rounded-2xl mb-4 md:mb-6">
-                <CubeTransparentIcon className="w-8 h-8 md:w-10 md:h-10 text-amber-400 glow-amber" />
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-gradient mb-3 md:mb-4">Quantum Box</h2>
-            <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-6 md:mb-8 flex-grow">
-              Visual concept mapping with weighted relationships.
-            </p>
-             <button
-              onClick={onStartQuantumBox}
-              className="btn-primary w-full text-center font-bold py-3 md:py-4 px-6 md:px-8 rounded-xl text-base md:text-lg"
-            >
-              Start Quantum Box
-            </button>
-          </div>
-
         </div>
       </main>
     </div>
