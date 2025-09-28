@@ -12,6 +12,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/react": "^19.1.15",
     "@types/react-dom": "^19.1.9",
