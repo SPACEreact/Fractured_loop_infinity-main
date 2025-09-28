@@ -112,7 +112,7 @@ const NodeLibraryPanel = ({ onDragStart, onPreview }: {
     }, {} as Record<string, NodeTemplate[]>);
 
     return (
-        <aside className="glass-card w-64 p-4 flex flex-col fixed inset-y-0 left-0 overflow-y-auto custom-scrollbar z-30">
+        <aside className="glass-card w-64 p-4 flex flex-col fixed top-14 bottom-0 left-0 overflow-y-auto custom-scrollbar z-30">
             <div className="flex items-center gap-2 px-2 mb-4">
                 <CubeTransparentIcon className="w-8 h-8 text-indigo-400" />
                 <h1 className="text-xl font-bold text-gray-100">Tag Library</h1>
@@ -631,7 +631,7 @@ const deleteNode = useCallback((nodeId: string) => {
                 </div>
 
                 {/* Inspector Panel - Hidden on mobile */}
-                <aside className="hidden md:flex bg-gray-800/50 w-80 flex-col fixed inset-y-0 right-0 z-30">
+                <aside className="hidden md:flex bg-gray-800/50 w-80 flex-col fixed top-14 bottom-0 right-0 z-30">
                     <div className="flex-shrink-0 border-b border-gray-700">
                         <nav className="flex -mb-px">
                             <button onClick={() => setActiveTab('inspector')} className={`flex-1 py-3 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'inspector' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}`}>
