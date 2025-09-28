@@ -5,7 +5,6 @@ import type { Node, Connection, NodeGraph } from '../types';
 import { NODE_TEMPLATES, NodeTemplate, TAG_GROUPS } from '../constants';
 import { generateFromQuantumBox } from '../services/geminiService';
 import { ArrowUturnLeftIcon, SparklesIcon, CubeTransparentIcon } from './IconComponents';
-import LoadingSpinner from './LoadingSpinner';
 
 // --- Helper Functions & Constants ---
 const CATEGORY_COLORS: Record<string, string> = {
@@ -33,7 +32,7 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
 
     return (
         <div
-            className={`absolute rounded-full shadow-2xl flex items-center justify-center text-center transition-all duration-150 group`}
+            className={`absolute rounded-full shadow-2xl flex items-center justify-center text-center transition-all duration-150 group z-10`}
             style={{
                 left: node.position.x,
                 top: node.position.y,
@@ -46,18 +45,21 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
             }}
             onMouseDown={(e) => onMouseDown(e, node.id)}
             onClick={(e) => e.stopPropagation()} // FIX: Prevent click from bubbling to canvas and deselecting
+            title={`Node: ${node.name} (${node.category})`}
         >
             {/* Input Connector */}
             <div
                 className="absolute bg-cyan-400 w-4 h-4 rounded-full -left-2 top-1/2 -translate-y-1/2 cursor-crosshair hover:scale-125 transition-transform"
                 onMouseDown={(e) => onConnectorMouseDown(e, node.id, 'in')}
                 aria-label={`Input for ${node.name}`}
+                title="Input Connector"
             />
             {/* Output Connector */}
             <div
                 className="absolute bg-fuchsia-400 w-4 h-4 rounded-full -right-2 top-1/2 -translate-y-1/2 cursor-crosshair hover:scale-125 transition-transform"
                 onMouseDown={(e) => onConnectorMouseDown(e, node.id, 'out')}
                 aria-label={`Output for ${node.name}`}
+                title="Output Connector"
             />
 
             <div className="font-bold text-gray-100 p-2 cursor-move select-none" style={{ fontSize: Math.max(8, node.size / 8) }}>
@@ -68,6 +70,7 @@ const PlanetComponent = React.memo(({ node, onMouseDown, onConnectorMouseDown, i
             <div
                 className="absolute -right-1 -bottom-1 w-5 h-5 bg-gray-600 rounded-full border-2 border-gray-900 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity"
                 onMouseDown={(e) => onResizeStart(e, node.id)}
+                title="Resize Node"
             />
         </div>
     );
@@ -187,19 +190,19 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
                     <label className="block text-xs font-semibold uppercase text-gray-500 mb-2">Value</label>
                     {node.nodeType === 'text' || node.nodeType === 'input' ? (
                         <textarea
-                            value={node.value}
+                            value={node.value || ''}
                             onChange={(e) => onValueChange(node.id, e.target.value)}
                             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-2 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             rows={4}
                         />
                     ) : node.nodeType === 'option' && node.options ? (
                         <select
-                            value={node.value}
+                            value={node.value || ''}
                             onChange={(e) => onValueChange(node.id, e.target.value)}
                             className="w-full bg-gray-800 border border-gray-600 rounded-lg p-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         >
                             <option value="">-- Select --</option>
-                            {node.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            {node.options.map((opt: {value: string; label: string}) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                     ) : (
                             <div className="text-sm text-gray-500 p-2 bg-gray-800 rounded-md">This node's value is determined by its inputs or settings.</div>
@@ -218,15 +221,15 @@ const InspectorPanel = ({ node, previewTemplate, onValueChange, onNodeDelete, on
     return null;
 };
 
-const WeightsPanel: React.FC<{
+const WeightsPanel = ({
+    isWeightingEnabled, onWeightingToggle, styleRigidity, onStyleRigidityChange, tagWeights, onTagWeightChange
+}: {
     isWeightingEnabled?: boolean;
     onWeightingToggle?: (enabled: boolean) => void;
     styleRigidity?: number;
     onStyleRigidityChange?: (value: number) => void;
     tagWeights?: Record<string, number>;
     onTagWeightChange?: (tagId: string, weight: number) => void;
-}> = ({
-    isWeightingEnabled, onWeightingToggle, styleRigidity, onStyleRigidityChange, tagWeights, onTagWeightChange
 }) => {
     return (
         <div className="p-2">
@@ -248,7 +251,7 @@ const WeightsPanel: React.FC<{
             <div className={`transition-opacity duration-300 ${isWeightingEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
                  <div className="bg-gray-700/50 p-3 rounded-lg mb-4">
                     <label htmlFor="qb-style-rigidity" className="block font-bold text-gray-100 mb-2">Style Rigidity</label>
-                    <input id="qb-style-rigidity" type="range" min="0" max="100" value={styleRigidity} onChange={(e) => onStyleRigidityChange?.(parseInt(e.target.value, 10))} className="w-full" disabled={!isWeightingEnabled} />
+                    <input id="qb-style-rigidity" type="range" min="0" max="100" value={styleRigidity || 50} onChange={(e) => onStyleRigidityChange?.(parseInt(e.target.value, 10))} className="w-full" disabled={!isWeightingEnabled} />
                      <div className="text-xs text-gray-400 flex justify-between">
                         <span>More AI Freedom</span>
                         <span>Strict Adherence</span>
@@ -259,7 +262,7 @@ const WeightsPanel: React.FC<{
                     <details key={groupName} className="bg-gray-700/50 rounded-lg mb-2" open>
                         <summary className="font-bold text-gray-100 p-3 cursor-pointer">{groupName}</summary>
                         <div className="p-3 border-t border-gray-600 space-y-3">
-                            {tagIds.map(tagId => {
+                            {tagIds.map((tagId: string) => {
                                 const tag = NODE_TEMPLATES[tagId];
                                 if (!tag) return null;
                                 return (
@@ -291,7 +294,7 @@ interface QuantumBoxProps {
 }
 
 
-const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
+const QuantumBox = (props: QuantumBoxProps) => {
     const { onGoHome, tagWeights, styleRigidity, isWeightingEnabled } = props;
     const [graph, setGraph] = useState<NodeGraph>({ nodes: [], connections: [] });
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -307,23 +310,23 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
     const [drawingConnection, setDrawingConnection] = useState<{ from: { x: number; y: number }; to: { x: number; y: number } } | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
 
-    const updateNodeValue = useCallback((nodeId: string, value: string) => {
-         setGraph(g => ({ ...g, nodes: g.nodes.map(n => n.id === nodeId ? { ...n, value } : n) }));
-    }, []);
+const updateNodeValue = useCallback((nodeId: string, value: string) => {
+     setGraph((g: NodeGraph) => ({ ...g, nodes: g.nodes.map((n: Node) => n.id === nodeId ? { ...n, value } : n) }));
+}, []);
 
-    const updateNodeSize = useCallback((nodeId: string, size: number) => {
-        setGraph(g => ({ ...g, nodes: g.nodes.map(n => n.id === nodeId ? { ...n, size } : n) }));
-    }, []);
+const updateNodeSize = useCallback((nodeId: string, size: number) => {
+    setGraph((g: NodeGraph) => ({ ...g, nodes: g.nodes.map((n: Node) => n.id === nodeId ? { ...n, size } : n) }));
+}, []);
 
-    const deleteNode = useCallback((nodeId: string) => {
-        setGraph(g => ({
-            nodes: g.nodes.filter(n => n.id !== nodeId),
-            connections: g.connections.filter(c => c.fromNodeId !== nodeId && c.toNodeId !== nodeId)
-        }));
-        if (selectedNodeId === nodeId) {
-            setSelectedNodeId(null);
-        }
-    }, [selectedNodeId]);
+const deleteNode = useCallback((nodeId: string) => {
+    setGraph((g: NodeGraph) => ({
+        nodes: g.nodes.filter((n: Node) => n.id !== nodeId),
+        connections: g.connections.filter((c: Connection) => c.from !== nodeId && c.to !== nodeId)
+    }));
+    if (selectedNodeId === nodeId) {
+        setSelectedNodeId(null);
+    }
+}, [selectedNodeId]);
 
     const handleNodeMouseDown = (e: ReactMouseEvent<HTMLDivElement>, nodeId: string) => {
         e.stopPropagation();
@@ -381,7 +384,7 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
         switch (interaction.current.type) {
             case 'move':
                 const { nodeId, offsetX, offsetY } = interaction.current;
-                setGraph(g => ({...g, nodes: g.nodes.map(n => n.id === nodeId ? { ...n, position: { x: mousePos.x - offsetX, y: mousePos.y - offsetY } } : n)}));
+                setGraph((g: NodeGraph) => ({...g, nodes: g.nodes.map((n: Node) => n.id === nodeId ? { ...n, position: { x: mousePos.x - offsetX, y: mousePos.y - offsetY } } : n)}));
                 break;
             case 'resize':
                 const { startX, originalSize = 50 } = interaction.current;
@@ -401,7 +404,7 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
             const upX = e.clientX - editorBounds.left;
             const upY = e.clientY - editorBounds.top;
 
-            const toNode = graph.nodes.find(n => 
+            const toNode = graph.nodes.find((n: Node) => 
                 upX >= n.position.x && upX <= n.position.x + n.size &&
                 upY >= n.position.y && upY <= n.position.y + n.size
             );
@@ -409,9 +412,9 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
             const fromNodeId = interaction.current.nodeId;
             if (toNode && toNode.id !== fromNodeId) {
                 const toNodeId = toNode.id;
-                const existing = graph.connections.find(c => (c.fromNodeId === fromNodeId && c.toNodeId === toNodeId) || (c.fromNodeId === toNodeId && c.toNodeId === fromNodeId));
+                const existing = graph.connections.find((c: Connection) => (c.from === fromNodeId && c.to === toNodeId) || (c.from === toNodeId && c.to === fromNodeId));
                 if (!existing) {
-                     setGraph(g => ({...g, connections: [...g.connections, { id: crypto.randomUUID(), fromNodeId, toNodeId, type: 'harmony' }] }));
+                     setGraph((g: NodeGraph) => ({...g, connections: [...g.connections, { id: crypto.randomUUID(), from: fromNodeId, to: toNodeId, type: 'harmony' }] }));
                 }
             }
         }
@@ -445,7 +448,12 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
     };
     
     const handleToggleConnectionType = (connId: string) => {
-        setGraph(g => ({...g, connections: g.connections.map(c => c.id === connId ? {...c, type: c.type === 'harmony' ? 'tension' : 'harmony'} : c)}));
+        setGraph((g: NodeGraph) => ({
+            ...g,
+            connections: g.connections.map((c: Connection) =>
+                c.id === connId ? { ...c, type: c.type === 'harmony' ? 'tension' : 'harmony' } : c
+            )
+        }));
     };
 
     const handlePreviewNode = (template: NodeTemplate) => {
@@ -548,24 +556,27 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
         <div className="h-screen flex flex-col">
             <header className="p-2 border-b border-gray-700 flex justify-between items-center flex-shrink-0 z-10 bg-gray-900">
                  <div className="flex items-center gap-4">
-                    <button onClick={onGoHome} className="flex items-center gap-2 text-gray-300 font-medium py-2 px-3 rounded-lg hover:bg-gray-700 hover:text-white transition-colors duration-200">
+                    <button onClick={onGoHome} className="flex items-center gap-2 text-gray-300 font-medium py-2 px-3 rounded-lg hover:bg-gray-700 hover:text-white transition-colors duration-200" title="Go back to home">
                         <ArrowUturnLeftIcon className="w-5 h-5" />
                         <span>Home</span>
                     </button>
                     <div className="w-px h-6 bg-gray-700"></div>
                      <h1 className="text-xl font-bold text-gray-100">Quantum Box</h1>
                 </div>
-                <button onClick={handleGenerate} disabled={isGenerating || graph.nodes.length === 0} className="flex items-center gap-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-500 transition-colors duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed">
+                <button onClick={handleGenerate} disabled={isGenerating || graph.nodes.length === 0} className="flex items-center gap-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-500 transition-colors duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed" title="Generate output from nodes">
                     <SparklesIcon className="w-5 h-5" />
                     <span>Generate</span>
                 </button>
             </header>
 
             <main className="flex-1 relative">
-                <NodeLibraryPanel onDragStart={handleDragStart} onPreview={handlePreviewNode} />
-                
-                <div 
-                    className="fixed left-64 right-80 top-14 bottom-0 bg-gray-900 overflow-hidden"
+                {/* Library Panel - Hidden on mobile */}
+                <div className="hidden md:block">
+                    <NodeLibraryPanel onDragStart={handleDragStart} onPreview={handlePreviewNode} />
+                </div>
+
+                <div
+                    className="fixed md:left-64 left-0 right-0 md:right-80 top-14 bottom-0 bg-gray-900 overflow-hidden"
                     style={{backgroundImage: 'radial-gradient(circle at center, #1f2937 0%, #111827 60%)'}}
                     ref={editorRef}
                     onDrop={handleDrop}
@@ -575,21 +586,22 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
                         setPreviewTemplate(null);
                     }}
                 >
-                    <button 
+                    <button
                         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-yellow-300 rounded-full shadow-[0_0_50px_10px_rgba(253,249,156,0.5)] transition-transform hover:scale-110 disabled:cursor-not-allowed"
                         onClick={(e) => { e.stopPropagation(); handleSunClick(); }}
                         disabled={!generatedOutput || isGenerating}
                         aria-label="Show generated prompt"
+                        title="Sun: Click to view generated output. Connect nodes here for results."
                     />
 
                     <svg className="absolute w-full h-full pointer-events-none">
                          {[150, 300, 450].map(r => <circle key={r} cx="50%" cy="50%" r={r} stroke="#374151" strokeWidth="1" fill="none" />)}
                         {graph.connections.map((conn) => (
-                            <ConnectionComponent 
+                            <ConnectionComponent
                                 key={conn.id}
                                 id={conn.id}
-                                fromPos={getNodeConnectorPos(conn.fromNodeId)}
-                                toPos={getNodeConnectorPos(conn.toNodeId)}
+                                fromPos={getNodeConnectorPos(conn.from)}
+                                toPos={getNodeConnectorPos(conn.to)}
                                 type={conn.type}
                                 onToggle={handleToggleConnectionType}
                             />
@@ -610,8 +622,9 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
                         </div>
                     ))}
                 </div>
-                
-                <aside className="bg-gray-800/50 w-80 flex flex-col fixed inset-y-0 right-0 z-30">
+
+                {/* Inspector Panel - Hidden on mobile */}
+                <aside className="hidden md:flex bg-gray-800/50 w-80 flex-col fixed inset-y-0 right-0 z-30">
                     <div className="flex-shrink-0 border-b border-gray-700">
                         <nav className="flex -mb-px">
                             <button onClick={() => setActiveTab('inspector')} className={`flex-1 py-3 px-1 text-center border-b-2 font-medium text-sm ${activeTab === 'inspector' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}`}>
@@ -624,8 +637,8 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {activeTab === 'inspector' && (
-                            <InspectorPanel 
-                                node={graph.nodes.find(n => n.id === selectedNodeId) || null} 
+                            <InspectorPanel
+                                node={graph.nodes.find(n => n.id === selectedNodeId) || null}
                                 previewTemplate={previewTemplate}
                                 onValueChange={updateNodeValue}
                                 onNodeDelete={deleteNode}
@@ -636,10 +649,10 @@ const QuantumBox: React.FC<QuantumBoxProps> = (props) => {
                     </div>
                 </aside>
             </main>
-            
+
             <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 flex items-center gap-4 border border-gray-700">
                 <span className="font-bold text-rose-400">Tension</span>
-                <input type="range" min="0" max="100" value={harmonyLevel} onChange={(e) => setHarmonyLevel(parseInt(e.target.value, 10))} className="w-64" />
+                <input type="range" min="0" max="100" value={harmonyLevel} onChange={(e) => setHarmonyLevel(parseInt(e.target.value, 10))} className="w-32 md:w-64" />
                 <span className="font-bold text-blue-400">Harmony</span>
             </div>
 

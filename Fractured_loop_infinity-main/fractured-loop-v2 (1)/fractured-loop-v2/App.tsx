@@ -68,7 +68,7 @@ const App: React.FC = () => {
 
   const handleStartWorkflow = (workflow: Workflow) => {
     setActiveWorkflow(workflow);
-    setActiveBuildType(workflow.builds[0]);
+    setActiveBuildType(workflow.builds?.[0] || BUILDS[0]);
     setAppMode('build');
   };
   
@@ -92,10 +92,10 @@ const App: React.FC = () => {
   
   const handleCompleteBuild = useCallback((buildType: BuildType, newSeeds: Seed[]) => {
     setBuildContext(prev => {
-        const existingSeeds = prev[buildType]?.seeds || [];
+        const existingSeeds = prev[buildType.id]?.seeds || [];
         return {
             ...prev,
-            [buildType]: {
+            [buildType.id]: {
                 seeds: [...existingSeeds, ...newSeeds]
             }
         };
@@ -171,8 +171,8 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-screen font-sans gradient-bg text-gray-100 overflow-hidden">
-        <div className="gradient-overlay h-full">
+    <div className="min-h-screen font-sans gradient-bg text-gray-100 overflow-y-auto">
+        <div className="gradient-overlay min-h-full">
             {renderContent()}
         </div>
     </div>
