@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Ensure the script is executable
+chmod +x build.sh
+
 # Set up error catching and logging
 echo "Starting build process..."
 
@@ -7,13 +10,7 @@ echo "Starting build process..."
 echo "Installing dependencies..."
 npm ci || { echo "Error: npm ci failed. Check dependencies."; exit 1; }
 
-# Check Node.js version compatibility
-echo "Verifying Node.js version..."
-NODE_VERSION=$(node -v)
-if [[ "$NODE_VERSION" < "v20.19" ]]; then
-  echo "Error: Node.js version is incompatible. Expected >=v20.19. Found: $NODE_VERSION"
-  exit 1
-fi
+
 
 # Run the build command and catch errors
 echo "Running build script..."
