@@ -1,7 +1,7 @@
 
 
 import React, { useState, useCallback } from 'react';
-import type { Project, Asset, CanvasNode, CanvasConnection } from './types';
+import type { Project, Asset, Track, Layer, TimelineItem } from './types';
 import Workspace from './components/Workspace';
 
 const App: React.FC = () => {
@@ -45,62 +45,60 @@ const App: React.FC = () => {
     }
   ];
 
-  const sampleNodes: CanvasNode[] = [
+  const sampleTracks: Track[] = [
     {
-      id: 'node-1',
-      position: { x: 100, y: 100 },
-      size: 80,
-      assetId: 'asset-1',
-      name: 'Protagonist',
-      description: 'The main character, a brave activist fighting corruption'
+      id: 'track-1',
+      name: 'Style',
+      type: 'global'
     },
     {
-      id: 'node-2',
-      position: { x: 300, y: 150 },
-      size: 80,
-      assetId: 'asset-2',
-      name: 'Inciting Incident',
-      description: 'The event that kicks off the main conflict'
+      id: 'track-2',
+      name: 'Audio',
+      type: 'global'
     },
     {
-      id: 'node-3',
-      position: { x: 500, y: 200 },
-      size: 80,
-      assetId: 'asset-3',
-      name: 'Opening Shot',
-      description: 'The first shot establishing the story world'
-    },
-    {
-      id: 'node-4',
-      position: { x: 250, y: 350 },
-      size: 80,
-      assetId: 'asset-4',
-      name: 'Neo-Noir Thriller',
-      description: 'The overall aesthetic and narrative style'
+      id: 'track-3',
+      name: 'Scenes',
+      type: 'scene',
+      layers: [
+        { id: 'layer-1', name: 'Character', type: 'character' },
+        { id: 'layer-2', name: 'Shot', type: 'shot' },
+        { id: 'layer-3', name: 'Lighting', type: 'lighting' }
+      ]
     }
   ];
 
-  const sampleConnections: CanvasConnection[] = [
+  const sampleTimelineItems: TimelineItem[] = [
     {
-      id: 'conn-1',
-      from: 'node-1',
-      to: 'node-2',
-      type: 'harmony',
-      harmonyLevel: 70
+      id: 'item-1',
+      assetId: 'asset-4',
+      trackId: 'track-1',
+      startTime: 0,
+      duration: 120 // 2 minutes
     },
     {
-      id: 'conn-2',
-      from: 'node-2',
-      to: 'node-3',
-      type: 'tension',
-      harmonyLevel: 30
+      id: 'item-2',
+      assetId: 'asset-1',
+      trackId: 'track-3',
+      startTime: 0,
+      duration: 30,
+      layerId: 'layer-1'
     },
     {
-      id: 'conn-3',
-      from: 'node-4',
-      to: 'node-1',
-      type: 'harmony',
-      harmonyLevel: 80
+      id: 'item-3',
+      assetId: 'asset-3',
+      trackId: 'track-3',
+      startTime: 0,
+      duration: 15,
+      layerId: 'layer-2'
+    },
+    {
+      id: 'item-4',
+      assetId: 'asset-2',
+      trackId: 'track-3',
+      startTime: 15,
+      duration: 45,
+      layerId: 'layer-1'
     }
   ];
 
@@ -109,12 +107,14 @@ const App: React.FC = () => {
     id: 'project-1',
     name: 'My AI Filmmaker Project',
     assets: sampleAssets,
-    canvas: {
-      nodes: sampleNodes,
-      connections: sampleConnections
-    },
+    tracks: sampleTracks,
+    timelineItems: sampleTimelineItems,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    canvas: {
+      nodes: [],
+      connections: []
+    }
   });
 
   // Global state for Tag Weighting System
