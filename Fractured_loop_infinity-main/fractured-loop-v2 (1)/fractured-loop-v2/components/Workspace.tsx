@@ -1,15 +1,14 @@
-import React, { useState, useRef, useCallback, MouseEvent as ReactMouseEvent, useEffect } from 'react';
-import { ChatRole, CanvasNode, CanvasConnection } from '../types';
-import type { Project, Asset, Message } from '../types';
+import React, { useState, useCallback } from 'react';
+import { ChatRole } from '../types';
+import type { Project, Asset, Message, TimelineBlock } from '../types';
 import { ASSET_TEMPLATES, FIELD_OPTIONS } from '../constants';
 import { generateFromWorkspace, generateSandboxResponse } from '../services/geminiService';
-import { FolderIcon, SparklesIcon, CubeTransparentIcon, ChatBubbleLeftRightIcon, Cog6ToothIcon } from './IconComponents';
+import { FolderIcon, SparklesIcon, CubeTransparentIcon, ChatBubbleLeftRightIcon, Cog6ToothIcon, MagicWandIcon } from './IconComponents';
 import ChatAssistant from './ChatAssistant.tsx';
-import Timeline from './Timeline.tsx';
 
 interface WorkspaceProps {
-  project: Project & { canvas: { nodes: CanvasNode[]; connections: CanvasConnection[] } };
-  setProject: React.Dispatch<React.SetStateAction<Project & { canvas: { nodes: CanvasNode[]; connections: CanvasConnection[] } }>>;
+  project: Project;
+  setProject: React.Dispatch<React.SetStateAction<Project>>;
   tagWeights: Record<string, number>;
   styleRigidity: number;
   isWeightingEnabled: boolean;
@@ -18,8 +17,104 @@ interface WorkspaceProps {
   onWeightingToggle: (enabled: boolean) => void;
 }
 
+// Optimized Dropdown Component
+const OptimizedDropdown = ({
+  value,
+  options,
+  onChange,
+  placeholder,
+  className = ""
+}: {
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  const filteredOptions = options.filter(option =>
+    option.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSelect = (option: string) => {
+    onChange(option);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  React.useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(option => option === value);
+
+  return (
+    <div ref={dropdownRef} className={`relative ${className}`}>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-gray-700 text-gray-100 rounded px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 flex items-center justify-between"
+      >
+        <span className={selectedOption ? '' : 'text-gray-400'}>
+          {selectedOption || placeholder || 'Select option...'}
+        </span>
+        <span className="text-gray-400 ml-2">
+          {isOpen ? '▲' : '▼'}
+        </span>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-gray-700 border border-gray-600 rounded shadow-lg max-h-60 overflow-hidden">
+          {options.length > 5 && (
+            <div className="p-2 border-b border-gray-600">
+              <input
+                type="text"
+                placeholder="Search options..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-600 text-gray-100 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+
+          <div className="max-h-48 overflow-y-auto">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((option, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleSelect(option)}
+                  className={`px-3 py-2 cursor-pointer hover:bg-gray-600 transition-colors ${
+                    option === value ? 'bg-indigo-600 text-white' : 'text-gray-100'
+                  }`}
+                >
+                  {option}
+                </div>
+              ))
+            ) : (
+              <div className="px-3 py-2 text-gray-400 text-sm">
+                No options found
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Sub-components
-const AssetLibraryPanel = ({ onCreateAsset }: { onCreateAsset: (templateType: string) => void }) => {
+const AssetLibraryPanel = () => {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     primary: true,
     secondary: true,
@@ -48,26 +143,27 @@ const AssetLibraryPanel = ({ onCreateAsset }: { onCreateAsset: (templateType: st
       </div>
       <div className="space-y-4">
         {Object.keys(groupedTemplates).map(category => (
-          <div key={category}>
+          <div key={category} className="space-y-2">
             <button
               onClick={() => toggleCategory(category)}
-              className="w-full text-left font-bold text-gray-100 mb-2 flex items-center gap-2"
+              className="w-full text-left font-medium text-gray-100 hover:text-indigo-400 transition-colors"
             >
-              <span className={`transform transition-transform ${expandedCategories[category] ? 'rotate-90' : ''}`}>▶</span>
               {category.charAt(0).toUpperCase() + category.slice(1)} Assets
+              <span className="float-right">
+                {expandedCategories[category] ? '▼' : '▶'}
+              </span>
             </button>
             {expandedCategories[category] && (
-              <div className="space-y-2 ml-4">
+              <div className="space-y-1 ml-4">
                 {groupedTemplates[category].map(template => (
                   <div
                     key={template.type}
-                    className="glass-card p-3 cursor-pointer hover-lift transition-all"
-                    onClick={() => onCreateAsset(template.type)}
                     draggable
                     onDragStart={(e) => handleDragStart(e, template.type)}
+                    className="p-2 bg-gray-700/50 rounded cursor-move hover:bg-gray-600/50 transition-colors"
                   >
-                    <p className="font-bold text-sm text-gray-100">{template.name}</p>
-                    <p className="text-xs text-gray-400 mt-1">{template.description}</p>
+                    <div className="font-medium text-gray-100">{template.name}</div>
+                    <div className="text-xs text-gray-400">{template.description}</div>
                   </div>
                 ))}
               </div>
@@ -79,31 +175,27 @@ const AssetLibraryPanel = ({ onCreateAsset }: { onCreateAsset: (templateType: st
   );
 };
 
-
-
-const NodeDetailsPanel = ({
-  selectedNodeId,
+const AssetDetailsPanel = ({
+  selectedAssetId,
   project,
   onUpdateAsset,
-  onDeleteNode,
+  onDeleteAsset,
   onClose
 }: {
-  selectedNodeId: string | null;
+  selectedAssetId: string | null;
   project: Project;
   onUpdateAsset: (assetId: string, updates: Partial<Asset>) => void;
-  onDeleteNode: (nodeId: string) => void;
+  onDeleteAsset: (assetId: string) => void;
   onClose: () => void;
 }) => {
-  if (!selectedNodeId) return null;
+  if (!selectedAssetId) return null;
 
-  const node = project.canvas.nodes.find(n => n.id === selectedNodeId);
-  const asset = node ? project.assets.find(a => a.id === node.assetId) : null;
-
-  if (!node || !asset) return null;
+  const asset = project.assets.find(a => a.id === selectedAssetId);
+  if (!asset) return null;
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete the node "${asset.name}"? This action cannot be undone.`)) {
-      onDeleteNode(selectedNodeId);
+    if (window.confirm(`Are you sure you want to delete the asset "${asset.name}"? This action cannot be undone.`)) {
+      onDeleteAsset(selectedAssetId);
       onClose();
     }
   };
@@ -139,20 +231,85 @@ const NodeDetailsPanel = ({
   };
 
   const parsedFields = parseContent(asset.content);
-  const fieldOptions = FIELD_OPTIONS[asset.type] || {};
+
+  // Map field names to their dropdown options using FIELD_OPTIONS
+  const getFieldOptions = (fieldKey: string): string[] => {
+    // First, try if fieldKey is a key in FIELD_OPTIONS with options
+    if (FIELD_OPTIONS[fieldKey] && FIELD_OPTIONS[fieldKey].options) {
+      return FIELD_OPTIONS[fieldKey].options;
+    }
+
+    // Then, try to find fieldKey as subkey in nested FIELD_OPTIONS
+    const options: string[] = [];
+    for (const [key, value] of Object.entries(FIELD_OPTIONS)) {
+      if (value && typeof value === 'object' && value[fieldKey] && Array.isArray(value[fieldKey])) {
+        options.push(...value[fieldKey]);
+      }
+    }
+    if (options.length > 0) {
+      return [...new Set(options)];
+    }
+
+    // Fallback to special mappings for cases where fieldKey doesn't match
+    const specialMappings: Record<string, string> = {
+      'genre': 'story_genres',
+      'tone': 'story_tones',
+      'shot_type': 'shot_types',
+      'camera_movement': 'camera_movements',
+      'lighting': 'lighting_styles',
+      'color_palette': 'color_palettes',
+      'focal_length': 'camera_focal_lengths',
+      'aperture': 'camera_apertures',
+      'pacing': 'video_pacing',
+      'duration': 'video_durations',
+      'aspect_ratio': 'aspect_ratios',
+      'layout': 'storyboard_output',
+      'annotations': 'storyboard_output',
+      'style': 'storyboard_output',
+      'lut': 'color_grading',
+      'contrast': 'color_grading',
+      'saturation': 'color_grading',
+      'key_light': 'lighting_setup',
+      'color_temperature': 'lighting_setup',
+      'intensity': 'lighting_setup',
+      'shutter_speed': 'camera_settings',
+      'iso': 'camera_settings',
+      'quality': 'image_output',
+      'color_space': 'image_output',
+      'bitrate': 'video_output',
+      'codec': 'video_output',
+      'frame_rate': 'video_output',
+      'format': 'video_output',
+      'resolution': 'video_output' // but since it's handled above, but for special, but since it's handled above
+    };
+
+    const optionsKey = specialMappings[fieldKey];
+    if (optionsKey) {
+      const fieldOptions = FIELD_OPTIONS[optionsKey];
+      if (fieldOptions) {
+        if (fieldOptions.options) {
+          return fieldOptions.options;
+        } else if (fieldOptions[fieldKey] && Array.isArray(fieldOptions[fieldKey])) {
+          return fieldOptions[fieldKey];
+        }
+      }
+    }
+
+    return [];
+  };
 
   return (
     <aside className="glass-card w-80 p-4 flex flex-col fixed top-14 bottom-0 right-0 overflow-y-auto custom-scrollbar z-40">
       <div className="flex items-center justify-between px-2 mb-4">
         <div className="flex items-center gap-2">
           <CubeTransparentIcon className="w-6 h-6 text-indigo-400" />
-          <h1 className="text-lg font-bold text-gray-100">Node Details</h1>
+          <h1 className="text-lg font-bold text-gray-100">Asset Details</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDelete}
             className="text-red-400 hover:text-red-300 transition-colors text-lg"
-            title="Delete Node"
+            title="Delete Asset"
           >
             🗑️
           </button>
@@ -188,23 +345,19 @@ const NodeDetailsPanel = ({
           <div className="space-y-3">
             {Object.entries(parsedFields).map(([fieldKey, fieldValue]) => {
               const displayName = fieldKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-              const options = fieldOptions[fieldKey];
+              const options = getFieldOptions(fieldKey);
 
               if (options && options.length > 0) {
-                // Render dropdown for fields with predefined options
+                // Render optimized dropdown for fields with predefined options
                 return (
                   <div key={fieldKey}>
                     <label className="block font-medium text-gray-100 mb-1 text-sm">{displayName}</label>
-                    <select
+                    <OptimizedDropdown
                       value={fieldValue}
-                      onChange={(e) => updateField(fieldKey, e.target.value)}
-                      className="w-full bg-gray-700 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="">Select {displayName.toLowerCase()}...</option>
-                      {options.map(option => (
-                        <option key={option} value={option}>{option}</option>
-                      ))}
-                    </select>
+                      options={options}
+                      onChange={(value) => updateField(fieldKey, value)}
+                      placeholder={`Select ${displayName.toLowerCase()}...`}
+                    />
                   </div>
                 );
               } else {
@@ -258,90 +411,7 @@ const NodeDetailsPanel = ({
   );
 };
 
-const ConnectionDetailsPanel = ({
-  selectedConnectionId,
-  selectedNodeId,
-  project,
-  onUpdateConnection,
-  onClose
-}: {
-  selectedConnectionId: string | null;
-  selectedNodeId: string | null;
-  project: Project;
-  onUpdateConnection: (connectionId: string, updates: Partial<CanvasConnection>) => void;
-  onClose: () => void;
-}) => {
-  if (!selectedConnectionId) return null;
 
-  const connection = project.canvas.connections.find(c => c.id === selectedConnectionId);
-  if (!connection) return null;
-
-  const fromNode = project.canvas.nodes.find(n => n.id === connection.from);
-  const toNode = project.canvas.nodes.find(n => n.id === connection.to);
-  const fromAsset = fromNode ? project.assets.find(a => a.id === fromNode.assetId) : null;
-  const toAsset = toNode ? project.assets.find(a => a.id === toNode.assetId) : null;
-
-  return (
-    <aside className="glass-card w-80 p-4 flex flex-col fixed top-14 bottom-0 overflow-y-auto custom-scrollbar z-40" style={{ right: selectedNodeId ? '80px' : '0px' }}>
-      <div className="flex items-center justify-between px-2 mb-4">
-        <div className="flex items-center gap-2">
-          <SparklesIcon className="w-6 h-6 text-indigo-400" />
-          <h1 className="text-lg font-bold text-gray-100">Connection Details</h1>
-        </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-200 transition-colors"
-        >
-          ✕
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block font-bold text-gray-100 mb-2">From</label>
-          <div className="text-sm text-gray-300 bg-gray-700 px-3 py-2 rounded">
-            {fromAsset?.name || 'Unknown'}
-          </div>
-        </div>
-
-        <div>
-          <label className="block font-bold text-gray-100 mb-2">To</label>
-          <div className="text-sm text-gray-300 bg-gray-700 px-3 py-2 rounded">
-            {toAsset?.name || 'Unknown'}
-          </div>
-        </div>
-
-        <div>
-          <label className="block font-bold text-gray-100 mb-2">Type</label>
-          <select
-            value={connection.type}
-            onChange={(e) => onUpdateConnection(connection.id, { type: e.target.value as 'harmony' | 'tension' })}
-            className="w-full bg-gray-700 text-gray-100 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="harmony">Harmony</option>
-            <option value="tension">Tension</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block font-bold text-gray-100 mb-2">Harmony Level: {connection.harmonyLevel}%</label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={connection.harmonyLevel}
-            onChange={(e) => onUpdateConnection(connection.id, { harmonyLevel: parseInt(e.target.value, 10) })}
-            className="w-full"
-          />
-          <div className="text-xs text-gray-400 flex justify-between mt-1">
-            <span>Conflict</span>
-            <span>Harmony</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-  );
-};
 
 const ControlPanel = ({
   isWeightingEnabled,
@@ -422,6 +492,86 @@ const ControlPanel = ({
   );
 };
 
+// Simple Timeline View Component
+const SimpleTimelineView = ({
+  project,
+  selectedAssetId,
+  setSelectedAssetId,
+  onAssetDrop
+}: {
+  project: Project;
+  selectedAssetId: string | null;
+  setSelectedAssetId: (id: string | null) => void;
+  onAssetDrop: (assetId: string, timelineId: string) => void;
+}) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const assetId = e.dataTransfer.getData('text/plain');
+    if (assetId) {
+      onAssetDrop(assetId, 'primary');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div
+      className="h-full p-6 overflow-y-auto"
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+    >
+      <div className="max-w-4xl mx-auto">
+        <h2 className="text-2xl font-bold text-gray-100 mb-6">Primary Timeline</h2>
+
+        <div className="space-y-4">
+          {project.primaryTimeline.blocks.map((block, index) => {
+            const asset = project.assets.find(a => a.id === block.assetId);
+            if (!asset) return null;
+
+            return (
+              <div
+                key={block.id}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-colors ${
+                  selectedAssetId === asset.id
+                    ? 'border-indigo-500 bg-indigo-500/20'
+                    : 'border-gray-600 bg-gray-700/50 hover:border-gray-500'
+                }`}
+                onClick={() => setSelectedAssetId(asset.id)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-100">{asset.name}</h3>
+                      <p className="text-sm text-gray-400">{asset.type.replace('_', ' ')}</p>
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {asset.createdAt.toLocaleDateString()}
+                  </div>
+                </div>
+                {asset.summary && (
+                  <p className="text-sm text-gray-300 mt-2">{asset.summary}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {project.primaryTimeline.blocks.length === 0 && (
+          <div className="text-center py-12 text-gray-400">
+            <p>Drag assets from the library to add them to the timeline.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // @ts-ignore - tagWeights and onTagWeightChange are used in ControlPanel and generateFromWorkspace
 const Workspace: React.FC<WorkspaceProps> = ({
   project,
@@ -433,94 +583,13 @@ const Workspace: React.FC<WorkspaceProps> = ({
   onStyleRigidityChange,
   onWeightingToggle
 }) => {
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
-  const [activePanel, setActivePanel] = useState<'canvas' | 'chat'>('canvas');
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+  const [activePanel, setActivePanel] = useState<'canvas' | 'chat' | 'timeline'>('timeline');
   const [generatedOutput, setGeneratedOutput] = useState<string>('');
   const [outputType] = useState<'text' | 'image'>('text');
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const panelCount = (selectedNodeId ? 1 : 0) + (selectedConnectionId ? 1 : 0);
-
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const interaction = useRef<{ type: 'move' | 'resize' | 'connect', nodeId: string; offsetX: number; offsetY: number, startX: number, startY: number, originalSize?: number } | null>(null);
-
-  const createAsset = useCallback((templateType: string) => {
-    const template = ASSET_TEMPLATES[templateType];
-    if (!template) return;
-
-    const newAsset: Asset = {
-      id: crypto.randomUUID(),
-      type: template.type,
-      name: template.name,
-      content: template.defaultContent || '',
-      tags: template.tags || [],
-      createdAt: new Date(),
-      summary: template.description
-    };
-
-    const newNode: CanvasNode = {
-      id: crypto.randomUUID(),
-      position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
-      size: 80,
-      assetId: newAsset.id,
-      name: newAsset.name,
-      description: newAsset.summary
-    };
-
-    setProject(prev => ({
-      ...prev,
-      assets: [...prev.assets, newAsset],
-      canvas: {
-        ...prev.canvas,
-        nodes: [...prev.canvas.nodes, newNode]
-      },
-      updatedAt: new Date()
-    }));
-  }, [setProject]);
-
-
-
-  const handleMouseMove = useCallback((e: globalThis.MouseEvent) => {
-    if (!interaction.current || !canvasRef.current) return;
-    const canvasBounds = canvasRef.current.getBoundingClientRect();
-    const mousePos = { x: e.clientX - canvasBounds.left, y: e.clientY - canvasBounds.top };
-
-    switch (interaction.current.type) {
-      case 'move':
-        const { nodeId, offsetX, offsetY } = interaction.current;
-        setProject(prev => ({
-          ...prev,
-          canvas: {
-            ...prev.canvas,
-            nodes: prev.canvas.nodes.map((n: CanvasNode) =>
-              n.id === nodeId ? { ...n, position: { x: mousePos.x - offsetX, y: mousePos.y - offsetY } } : n
-            )
-          }
-        }));
-        break;
-      case 'resize':
-        const { startX, originalSize = 50 } = interaction.current;
-        const dx = e.clientX - startX;
-        const newSize = Math.max(50, Math.min(200, originalSize + dx));
-        setProject(prev => ({
-          ...prev,
-          canvas: {
-            ...prev.canvas,
-            nodes: prev.canvas.nodes.map((n: CanvasNode) =>
-              n.id === nodeId ? { ...n, size: newSize } : n
-            )
-          }
-        }));
-        break;
-    }
-  }, [setProject]);
-
-  const handleMouseUp = (e: globalThis.MouseEvent) => {
-    interaction.current = null;
-  };
 
 
 
@@ -530,7 +599,21 @@ const Workspace: React.FC<WorkspaceProps> = ({
     setIsGenerating(true);
 
     try {
-      const result = await generateFromWorkspace(project, _tagWeights, styleRigidity, outputType);
+      // Convert project timelines to canvas structure expected by generateFromWorkspace
+      const canvas = {
+        nodes: project.primaryTimeline.blocks.map(block => ({
+          id: block.id,
+          assetId: block.assetId,
+          position: { x: 0, y: 0 }, // Position can be defaulted or enhanced later
+          size: 1 // Default size
+        })),
+        connections: [] // No connections currently, can be enhanced if needed
+      };
+
+      const result = await generateFromWorkspace({
+        assets: project.assets,
+        canvas
+      }, _tagWeights, styleRigidity, outputType);
       setGeneratedOutput(result);
     } catch (error) {
       console.error('Generation error:', error);
@@ -578,17 +661,6 @@ const Workspace: React.FC<WorkspaceProps> = ({
     }
   };
 
-  useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
-
-
   const handleUpdateAsset = useCallback((assetId: string, updates: Partial<Asset>) => {
     setProject(prev => ({
       ...prev,
@@ -599,95 +671,74 @@ const Workspace: React.FC<WorkspaceProps> = ({
     }));
   }, [setProject]);
 
-  const handleUpdateConnection = useCallback((connectionId: string, updates: Partial<CanvasConnection>) => {
+  const handleDeleteAsset = useCallback((assetId: string) => {
     setProject(prev => ({
       ...prev,
-      canvas: {
-        ...prev.canvas,
-        connections: prev.canvas.connections.map(conn =>
-          conn.id === connectionId ? { ...conn, ...updates } : conn
-        )
+      assets: prev.assets.filter(asset => asset.id !== assetId),
+      primaryTimeline: {
+        ...prev.primaryTimeline,
+        blocks: prev.primaryTimeline.blocks.filter(block => block.assetId !== assetId)
       },
       updatedAt: new Date()
     }));
   }, [setProject]);
 
-  const handleDeleteNode = useCallback((nodeId: string) => {
-    setProject(prev => {
-      const node = prev.canvas.nodes.find(n => n.id === nodeId);
-      if (!node) return prev;
-
-      // Remove the node from canvas
-      const updatedNodes = prev.canvas.nodes.filter(n => n.id !== nodeId);
-
-      // Remove the associated asset
-      const updatedAssets = prev.assets.filter(a => a.id !== node.assetId);
-
-      // Remove any connections involving this node
-      const updatedConnections = prev.canvas.connections.filter(
-        conn => conn.from !== nodeId && conn.to !== nodeId
-      );
-
-      return {
-        ...prev,
-        assets: updatedAssets,
-        canvas: {
-          ...prev.canvas,
-          nodes: updatedNodes,
-          connections: updatedConnections
-        },
-        updatedAt: new Date()
-      };
-    });
-  }, [setProject]);
-
-  const handleCanvasDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const templateType = e.dataTransfer.getData('text/plain');
-    if (!templateType) return;
-
-    const canvasBounds = canvasRef.current?.getBoundingClientRect();
-    if (!canvasBounds) return;
-
-    const dropX = e.clientX - canvasBounds.left;
-    const dropY = e.clientY - canvasBounds.top;
-
+  const handleAssetDropOnTimeline = useCallback((templateType: string) => {
+    // Create new asset from template
     const template = ASSET_TEMPLATES[templateType];
     if (!template) return;
 
+    // Map template type to Asset type
+    const typeMap: Record<string, Asset['type']> = {
+      'character': 'secondary',
+      'plot_point': 'secondary',
+      'shot_card': 'secondary',
+      'master_style': 'primary',
+      'scene': 'primary',
+      'variant_shot': 'secondary',
+      'camera_settings': 'tertiary',
+      'depth_of_field': 'tertiary',
+      'lighting_setup': 'tertiary',
+      'color_grading': 'tertiary',
+      'audio_design': 'tertiary',
+      'vfx_compositing': 'tertiary',
+      'video_output': 'primary',
+      'image_output': 'primary',
+      'storyboard_output': 'primary'
+    };
+
     const newAsset: Asset = {
       id: crypto.randomUUID(),
-      type: template.type,
+      seedId: crypto.randomUUID(),
+      type: typeMap[template.type] || 'secondary',
       name: template.name,
       content: template.defaultContent || '',
       tags: template.tags || [],
       createdAt: new Date(),
-      summary: template.description
+      summary: template.description,
+      isMaster: template.type.includes('master') || template.type.includes('output'),
+      lineage: []
     };
 
-    const newNode: CanvasNode = {
+    // Add asset to primary timeline as a new block
+    const newBlock: TimelineBlock = {
       id: crypto.randomUUID(),
-      position: { x: dropX - 40, y: dropY - 40 }, // Center the node on the drop point
-      size: 80,
       assetId: newAsset.id,
-      name: newAsset.name,
-      description: newAsset.summary
+      position: project.primaryTimeline.blocks.length,
+      isExpanded: false,
+      createdAt: new Date()
     };
 
     setProject(prev => ({
       ...prev,
       assets: [...prev.assets, newAsset],
-      canvas: {
-        ...prev.canvas,
-        nodes: [...prev.canvas.nodes, newNode]
+      primaryTimeline: {
+        ...prev.primaryTimeline,
+        blocks: [...prev.primaryTimeline.blocks, newBlock]
       },
       updatedAt: new Date()
     }));
-  };
-
-  const handleCanvasDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); // Allow drop
-  };
+  }, [setProject, project.primaryTimeline.blocks.length]);
 
   return (
     <div className="h-screen flex flex-col">
@@ -697,44 +748,33 @@ const Workspace: React.FC<WorkspaceProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setActivePanel('canvas')}
-            className={`flex items-center gap-2 font-medium py-2 px-3 rounded-lg transition-colors ${activePanel === 'canvas' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
-          >
-            <CubeTransparentIcon className="w-5 h-5" />
-            Canvas
-          </button>
-          <button
             onClick={() => setActivePanel('chat')}
             className={`flex items-center gap-2 font-medium py-2 px-3 rounded-lg transition-colors ${activePanel === 'chat' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
           >
             <ChatBubbleLeftRightIcon className="w-5 h-5" />
             Chat
           </button>
+          <button
+            onClick={() => setActivePanel('timeline')}
+            className={`flex items-center gap-2 font-medium py-2 px-3 rounded-lg transition-colors ${activePanel === 'timeline' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+            title="Timeline"
+          >
+            <MagicWandIcon className="w-5 h-5" />
+            Timeline
+          </button>
         </div>
       </header>
 
       <main className="flex-1 relative">
-        <AssetLibraryPanel onCreateAsset={createAsset} />
+        <AssetLibraryPanel />
 
-        <div
-          className="fixed left-0 top-14 bottom-0 gradient-bg gradient-overlay overflow-hidden md:left-64"
-          style={{ right: `${panelCount * 80}px` }}
-          ref={canvasRef}
-          onClick={() => {
-            setSelectedNodeId(null);
-            setSelectedConnectionId(null);
-          }}
-          onDrop={handleCanvasDrop}
-          onDragOver={handleCanvasDragOver}
-        >
-          {activePanel === 'canvas' && (
-            <Timeline
+        <div className="fixed left-0 top-14 bottom-0 gradient-bg gradient-overlay overflow-hidden md:left-64">
+          {activePanel === 'timeline' && (
+            <SimpleTimelineView
               project={project}
-              setProject={setProject}
-              selectedNodeId={selectedNodeId}
-              setSelectedNodeId={setSelectedNodeId}
-              selectedConnectionId={selectedConnectionId}
-              setSelectedConnectionId={setSelectedConnectionId}
+              selectedAssetId={selectedAssetId}
+              setSelectedAssetId={setSelectedAssetId}
+              onAssetDrop={handleAssetDropOnTimeline}
             />
           )}
 
@@ -744,6 +784,8 @@ const Workspace: React.FC<WorkspaceProps> = ({
               isLoading={isChatLoading}
               generatedOutput={generatedOutput}
               onSendMessage={handleSendMessage}
+              project={project}
+              setProject={setProject}
             />
           )}
         </div>
@@ -756,24 +798,16 @@ const Workspace: React.FC<WorkspaceProps> = ({
           tagWeights={_tagWeights}
           onTagWeightChange={_onTagWeightChange}
           onGenerate={handleGenerate}
-          panelCount={(selectedNodeId ? 1 : 0) + (selectedConnectionId ? 1 : 0)}
+          panelCount={selectedAssetId ? 1 : 0}
           isGenerating={isGenerating}
         />
 
-        <NodeDetailsPanel
-          selectedNodeId={selectedNodeId}
+        <AssetDetailsPanel
+          selectedAssetId={selectedAssetId}
           project={project}
           onUpdateAsset={handleUpdateAsset}
-          onDeleteNode={handleDeleteNode}
-          onClose={() => setSelectedNodeId(null)}
-        />
-
-        <ConnectionDetailsPanel
-          selectedConnectionId={selectedConnectionId}
-          selectedNodeId={selectedNodeId}
-          project={project}
-          onUpdateConnection={handleUpdateConnection}
-          onClose={() => setSelectedConnectionId(null)}
+          onDeleteAsset={handleDeleteAsset}
+          onClose={() => setSelectedAssetId(null)}
         />
       </main>
     </div>

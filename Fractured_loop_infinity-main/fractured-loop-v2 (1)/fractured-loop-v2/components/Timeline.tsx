@@ -8,6 +8,7 @@ interface TimelineProps {
   setSelectedNodeId: React.Dispatch<React.SetStateAction<string | null>>;
   selectedConnectionId: string | null;
   setSelectedConnectionId: React.Dispatch<React.SetStateAction<string | null>>;
+  onAssetDrop: (assetId: string, trackId: string, startTime: number, layerId?: string) => void;
 }
 
 const Timeline: React.FC<TimelineProps> = ({
@@ -16,7 +17,8 @@ const Timeline: React.FC<TimelineProps> = ({
   selectedNodeId,
   setSelectedNodeId,
   selectedConnectionId,
-  setSelectedConnectionId
+  setSelectedConnectionId,
+  onAssetDrop
 }) => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -56,6 +58,25 @@ const Timeline: React.FC<TimelineProps> = ({
     setSelectedNodeId(null);
     setSelectedConnectionId(null);
   };
+
+  // Handle drop on timeline layer
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>, trackId: string, layerId?: string) => {
+    e.preventDefault();
+    const assetId = e.dataTransfer.getData('text/plain');
+    if (!assetId) return;
+
+    // Calculate start time based on drop position
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const startTime = Math.max(0, x / 10); // 10px per second
+
+    onAssetDrop(assetId, trackId, startTime, layerId);
+  }, [onAssetDrop]);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Allow drop
+  }, []);
+
   // Helper to get asset by id
   const getAssetById = (id: string) => assets.find(a => a.id === id);
 
@@ -176,7 +197,13 @@ const Timeline: React.FC<TimelineProps> = ({
           </div>
           {track.layers ? (
             track.layers.map((layer: Layer) => (
-              <div key={layer.id} className="timeline-layer" style={{ position: 'relative', height: 36, marginBottom: 4, backgroundColor: '#374151', borderRadius: 4 }}>
+              <div
+                key={layer.id}
+                className="timeline-layer"
+                style={{ position: 'relative', height: 36, marginBottom: 4, backgroundColor: '#374151', borderRadius: 4 }}
+                onDrop={(e) => handleDrop(e, track.id, layer.id)}
+                onDragOver={handleDragOver}
+              >
                 <div className="layer-name" style={{ position: 'absolute', left: 4, top: 8, color: '#d1d5db', fontSize: 12, fontWeight: '600' }}>
                   {layer.name}
                 </div>
@@ -184,7 +211,12 @@ const Timeline: React.FC<TimelineProps> = ({
               </div>
             ))
           ) : (
-            <div className="timeline-layer" style={{ position: 'relative', height: 36, backgroundColor: '#374151', borderRadius: 4 }}>
+            <div
+              className="timeline-layer"
+              style={{ position: 'relative', height: 36, backgroundColor: '#374151', borderRadius: 4 }}
+              onDrop={(e) => handleDrop(e, track.id)}
+              onDragOver={handleDragOver}
+            >
               {renderItems(track.id)}
             </div>
           )}

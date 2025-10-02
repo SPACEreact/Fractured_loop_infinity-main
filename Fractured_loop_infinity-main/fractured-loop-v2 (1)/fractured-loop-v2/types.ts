@@ -1,42 +1,8 @@
-// Timeline-based Project Types
-export interface TimelineItem {
-  id: string;
-  assetId: string; // Reference to the asset this item represents
-  trackId: string;
-  startTime: number; // In seconds
-  duration: number; // In seconds
-  layerId?: string; // For layered tracks like scenes
-}
-
-export interface Track {
-  id: string;
-  name: string;
-  type: 'global' | 'scene'; // Global tracks (Style, Audio) vs Scene tracks
-  layers?: Layer[]; // Only for scene tracks
-}
-
-export interface Layer {
-  id: string;
-  name: string;
-  type: 'character' | 'shot' | 'lighting'; // Asset types that can be layered
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  assets: Asset[];
-  tracks: Track[];
-  timelineItems: TimelineItem[];
-  createdAt: Date;
-  updatedAt: Date;
-  targetModel?: string; // Target AI model for generation (MidJourney, Sora, etc.)
-  canvas: CanvasState;
-}
-
-// Central Asset Interface
+// Fractured Loop Asset Types
 export interface Asset {
   id: string;
-  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'video_output' | 'image_output' | 'storyboard_output';
+  seedId: string; // Core lineage identifier (e.g., "A", "A.1", "A.1.3")
+  type: 'primary' | 'secondary' | 'tertiary' | 'master_story' | 'master_image' | 'master_video' | 'shot';
   name: string;
   content: string;
   tags: string[];
@@ -44,6 +10,51 @@ export interface Asset {
   summary: string;
   metadata?: Record<string, any>;
   questions?: Question[]; // For guided build assets
+  chatContext?: Message[]; // All Q&A with user
+  userSelections?: Record<string, any>; // Dropdowns, toggles
+  outputs?: string[]; // Generated drafts, prompts
+  isMaster?: boolean; // Flag for master assets
+  lineage?: string[]; // Array of asset IDs that contributed to this asset
+}
+
+// Timeline Block Interface
+export interface TimelineBlock {
+  id: string;
+  assetId: string;
+  position: number; // Position in timeline sequence
+  isExpanded: boolean; // Whether block is expanded to chat
+  createdAt: Date;
+}
+
+// Primary Timeline (Ideation Loop)
+export interface PrimaryTimeline {
+  blocks: TimelineBlock[];
+  outputDraft?: string; // Generated draft from Output Node
+}
+
+// Secondary Timeline (Production Loop)
+export interface SecondaryTimeline {
+  masterAssets: Asset[]; // Locked master assets
+  shotLists: ShotList[]; // Generated shot lists
+  appliedStyles?: Record<string, string>; // Style applications across shots
+}
+
+export interface ShotList {
+  id: string;
+  masterAssetId: string; // Reference to story master
+  shots: Asset[]; // Individual shot assets
+  createdAt: Date;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  assets: Asset[];
+  primaryTimeline: PrimaryTimeline;
+  secondaryTimeline?: SecondaryTimeline; // Appears after first master asset
+  createdAt: Date;
+  updatedAt: Date;
+  targetModel?: string; // Target AI model for generation (MidJourney, Sora, etc.)
 }
 
 // Enhanced Guided Build Types
@@ -121,4 +132,44 @@ export interface CanvasConnection {
 export interface CanvasState {
   nodes: CanvasNode[];
   connections: CanvasConnection[];
+}
+
+// Quantum Box Types
+export interface Node {
+  id: string;
+  position: { x: number; y: number };
+  data: any;
+}
+
+export interface Connection {
+  id: string;
+  source: string;
+  target: string;
+}
+
+export interface NodeGraph {
+  nodes: Node[];
+  connections: Connection[];
+}
+
+// Timeline Types
+export interface Track {
+  id: string;
+  name: string;
+  type: 'audio' | 'video' | 'text';
+  items: TimelineItem[];
+}
+
+export interface Layer {
+  id: string;
+  name: string;
+  type: 'background' | 'foreground' | 'overlay';
+}
+
+export interface TimelineItem {
+  id: string;
+  trackId: string;
+  start: number;
+  end: number;
+  content: string;
 }

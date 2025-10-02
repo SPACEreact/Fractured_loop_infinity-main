@@ -3,7 +3,7 @@ import { Build, Workflow } from './types';
 export type TagGroup = string[];
 
 export type AssetTemplate = {
-  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'video_output' | 'image_output' | 'storyboard_output';
+  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'master_video' | 'master_image' | 'storyboard_output';
   name: string;
   description: string;
   defaultContent?: string;
@@ -16,7 +16,7 @@ export const BUILDS: Build[] = [
     id: 'storybuild',
     name: 'Storybuild',
     description: 'Create compelling narratives with psychological depth using the 7-keyframe emotional structure focusing on Want vs. Need',
-    targetAssetType: 'scene',
+    targetAssetType: 'master_story',
     questions: [
       {
         id: 'genre',
@@ -98,7 +98,7 @@ export const BUILDS: Build[] = [
     id: 'shotbuild',
     name: 'Shotbuild',
     description: 'Design cinematic shots with expert camera, lighting, and composition techniques',
-    targetAssetType: 'shot_card',
+    targetAssetType: 'shot',
     questions: [
       {
         id: 'shot_type',
@@ -160,7 +160,7 @@ export const BUILDS: Build[] = [
     id: 'imgbuild',
     name: 'Imgbuild',
     description: 'Generate stunning images with AI models like MidJourney using expert prompts',
-    targetAssetType: 'image_output',
+    targetAssetType: 'master_image',
     questions: [
       {
         id: 'style_reference',
@@ -207,7 +207,7 @@ export const BUILDS: Build[] = [
     id: 'vidbuild',
     name: 'Vidbuild',
     description: 'Create cinematic videos with AI models like Sora using advanced prompt engineering',
-    targetAssetType: 'video_output',
+    targetAssetType: 'master_video',
     questions: [
       {
         id: 'narrative_summary',
@@ -246,7 +246,7 @@ export const BUILDS: Build[] = [
         id: 'resolution_fps',
         text: 'Resolution and frame rate',
         type: 'dropdown',
-        optionsKey: 'video_formats',
+        optionsKey: 'master_video',
         required: true
       }
     ]
@@ -368,17 +368,17 @@ export const ASSET_TEMPLATES: Record<string, AssetTemplate> = {
     category: 'tertiary'
   },
   // Output Nodes
-  video_output: {
-    type: 'video_output',
-    name: 'Video Output',
+  master_video: {
+    type: 'master_video',
+    name: 'Master Video',
     description: 'Generate final video output from your timeline tracks and layers',
     defaultContent: 'Resolution: \nFrame Rate: \nCodec: \nBitrate: \nFormat: \nColor Space: ',
     tags: ['output', 'video', 'final'],
     category: 'primary'
   },
-  image_output: {
-    type: 'image_output',
-    name: 'Image Output',
+  master_image: {
+    type: 'master_image',
+    name: 'Master Image',
     description: 'Generate final image output from your visual assets',
     defaultContent: 'Resolution: \nFormat: \nQuality: \nColor Space: \nMetadata: \nStyle Application: ',
     tags: ['output', 'image', 'final'],
@@ -435,13 +435,15 @@ export const MASTER_PROMPT = `You are Fractured Loop Infinity, an expert AI film
 When generating content, consider the harmony and tension between interconnected assets. Maintain creative integrity while respecting the user's vision. Use psychological depth in character development and cinematic expertise in visual design. Always aim for compelling, coherent storytelling that resonates emotionally.`;
 
 // Field options for smart UI components
-export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
+export type FieldOptionsType = Record<string, Record<string, any>>;
+
+export const FIELD_OPTIONS: FieldOptionsType = {
   story_genres: { options: ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Short', 'Sport', 'Thriller', 'War', 'Western'] },
-  story_tones: { options: ['Dark', 'Hopeful', 'Melancholic', 'Uplifting', 'Suspenseful', 'Humorous', 'Intense', 'Serene', 'Nostalgic', 'Energetic', 'Contemplative', 'Chaotic'] },
-  shot_types: { options: ['Extreme Wide Shot (EWS)', 'Wide Shot (WS)', 'Medium Wide Shot (MWS)', 'Medium Shot (MS)', 'Medium Close-Up (MCU)', 'Close-Up (CU)', 'Extreme Close-Up (ECU)', 'Over-the-Shoulder (OTS)', 'Point of View (POV)', 'High Angle', 'Low Angle', 'Dutch Angle', 'Bird\'s Eye', 'Worm\'s Eye'] },
-  camera_movements: { options: ['Static', 'Pan Left', 'Pan Right', 'Tilt Up', 'Tilt Down', 'Tracking Forward', 'Tracking Backward', 'Crane Up', 'Crane Down', 'Handheld', 'Steadicam', 'Drone', 'Aerial', 'Submersible'] },
-  lighting_styles: { options: ['Natural Daylight', 'Golden Hour', 'Blue Hour', 'Motivated Lighting', 'Three-Point Lighting', 'High-Key', 'Low-Key', 'Chiaroscuro', 'Silhouette', 'Backlit', 'Rim Light', 'Practical Lighting', 'Studio Lighting'] },
-  color_palettes: { options: ['Warm (Reds, Oranges)', 'Cool (Blues, Greens)', 'Monochrome', 'Vibrant', 'Muted', 'High Contrast', 'Pastel', 'Sepia', 'Neon', 'Earth Tones', 'Complementary', 'Analogous'] },
+  story_tones: { options: ['Dark', 'Hopeful', 'Melancholic', 'Uplifting', 'Suspenseful', 'Humorous', 'Intense', 'Serene', 'Nostalgic', 'Energetic', 'Contemplative', 'Chaotic', 'Paranoid', 'Triumphant', 'Bittersweet', 'Foreboding'] },
+  shot_types: { options: ['Extreme Wide Shot (EWS)', 'Wide Shot (WS)', 'Medium Wide Shot (MWS)', 'Medium Shot (MS)', 'Medium Close-Up (MCU)', 'Close-Up (CU)', 'Extreme Close-Up (ECU)', 'Over-the-Shoulder (OTS)', 'Point of View (POV)', 'High Angle', 'Low Angle', 'Dutch Angle', 'Bird\'s Eye', 'Worm\'s Eye', 'Establishing Shot', 'Reaction Shot', 'Cutaway'] },
+  camera_movements: { options: ['Static', 'Slow Push-In', 'Creep-Out', 'The Moment', 'Distraction', 'The Candidate', 'Pan Left', 'Pan Right', 'Tilt Up', 'Tilt Down', 'Tracking Forward', 'Tracking Backward', 'Crane Up', 'Crane Down', 'Handheld', 'Steadicam', 'Drone', 'Aerial', 'Submersible', 'Tripod Shot'] },
+  lighting_styles: { options: ['Natural Daylight', 'Golden Hour', 'Blue Hour', 'Motivated Lighting', 'Three-Point Lighting', 'High-Key', 'Low-Key', 'Chiaroscuro', 'Silhouette', 'Backlit', 'Rim Light', 'Practical Lighting', 'Studio Lighting', 'Candlelight', 'Neon', 'Firelight', 'Moonlight'] },
+  color_palettes: { options: ['Warm (Reds, Oranges)', 'Cool (Blues, Greens)', 'Monochrome', 'Vibrant', 'Muted', 'High Contrast', 'Pastel', 'Sepia', 'Neon', 'Earth Tones', 'Complementary', 'Analogous', 'Teal/Orange', 'Cool/Warm Contrast'] },
   camera_focal_lengths: { options: ['8mm (Fisheye)', '12mm', '16mm', '24mm', '35mm', '50mm', '85mm', '100mm', '135mm', '200mm', '300mm', '400mm (Telephoto)', '600mm'] },
   camera_apertures: { options: ['f/1.4', 'f/1.8', 'f/2.0', 'f/2.8', 'f/4.0', 'f/5.6', 'f/8.0', 'f/11', 'f/16', 'f/22'] },
   image_resolutions: { options: ['512x512', '1024x1024', '2048x2048', '4096x4096', 'HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'] },
@@ -454,7 +456,8 @@ export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
     frame_rate: ['24fps', '25fps', '30fps', '60fps', '120fps'],
     codec: ['H.264', 'H.265', 'VP9', 'AV1', 'ProRes'],
     format: ['MP4', 'MOV', 'AVI', 'MKV', 'WebM'],
-    bitrate: ['Low', 'Medium', 'High', 'Custom']
+    bitrate: ['Low', 'Medium', 'High', 'Custom'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
   },
   image_output: {
     resolution: ['HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'],
@@ -483,5 +486,25 @@ export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
     lut: ['None', 'Film Look', 'Teal/Orange', 'Cool', 'Warm', 'Vintage', 'High Contrast', 'Custom'],
     contrast: ['Low', 'Medium', 'High', 'Very High'],
     saturation: ['Desaturated', 'Natural', 'Vibrant', 'Oversaturated']
-  }
+  },
+  master_video: {
+    resolution: ['720p', '1080p', '4K', '8K'],
+    frame_rate: ['24fps', '25fps', '30fps', '60fps', '120fps'],
+    codec: ['H.264', 'H.265', 'VP9', 'AV1', 'ProRes'],
+    format: ['MP4', 'MOV', 'AVI', 'MKV', 'WebM'],
+    bitrate: ['Low', 'Medium', 'High', 'Custom'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
+  },
+  master_image: {
+    resolution: ['HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'],
+    format: ['JPEG', 'PNG', 'TIFF', 'EXR', 'WebP'],
+    quality: ['Low', 'Medium', 'High', 'Lossless'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
+  },
+  character_arc_types: { options: ['Positive Change', 'Flat Character Arc', 'Negative Character Arc'] },
+  opening_hooks: { options: ['Flashback', 'Flash Forward', 'Mid-story', 'Newsreel', 'The Setting', 'Crime Scene', 'Direct Addressing', 'Tragedy', 'A Day in Life', 'Establishing Shot', 'Chasing Sequence'] },
+  subtext_techniques: { options: ['Conflict', 'Silence', 'Ambiguity', 'Contradiction', 'Actions Over Words', 'Context', 'Body Language'] },
+  archetypes: { options: ['Heroes', 'Shadows', 'Mentors', 'Herald', 'Threshold Guardians', 'Shapeshifters', 'Tricksters', 'Allies', 'Woman as Temptress'] },
+  transition_types: { options: ['Cut', 'Fade In', 'Fade Out', 'Dissolve', 'Wipe', 'Iris', 'Match Cut', 'Jump Cut', 'Cross-fade'] },
+  depth_of_field_options: { options: ['Shallow (Subject Isolation)', 'Medium (Natural)', 'Deep (Landscape)', 'Rack Focus', 'Split Diopter'] }
 };

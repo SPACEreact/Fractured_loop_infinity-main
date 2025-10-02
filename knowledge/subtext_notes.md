@@ -1,3 +1,4 @@
+
 # Subtext Notes
 
 ## Character Arc Types

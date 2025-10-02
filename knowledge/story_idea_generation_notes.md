@@ -1,3 +1,5 @@
+
+
 # Story Idea Generation Notes
 
 1. Dramatize the Normal
