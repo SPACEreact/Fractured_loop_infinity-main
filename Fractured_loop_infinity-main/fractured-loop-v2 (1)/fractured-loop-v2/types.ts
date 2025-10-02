@@ -1,26 +1,104 @@
+// Fractured Loop Asset Types
+export interface Asset {
+  id: string;
+  seedId: string; // Core lineage identifier (e.g., "A", "A.1", "A.1.3")
+  type: 'primary' | 'secondary' | 'tertiary' | 'master_story' | 'master_image' | 'master_video' | 'shot';
+  name: string;
+  content: string;
+  tags: string[];
+  createdAt: Date;
+  summary: string;
+  metadata?: Record<string, any>;
+  questions?: Question[]; // For guided build assets
+  chatContext?: Message[]; // All Q&A with user
+  userSelections?: Record<string, any>; // Dropdowns, toggles
+  outputs?: string[]; // Generated drafts, prompts
+  isMaster?: boolean; // Flag for master assets
+  lineage?: string[]; // Array of asset IDs that contributed to this asset
+}
+
+// Timeline Block Interface
+export interface TimelineBlock {
+  id: string;
+  assetId: string;
+  position: number; // Position in timeline sequence
+  isExpanded: boolean; // Whether block is expanded to chat
+  createdAt: Date;
+}
+
+// Primary Timeline (Ideation Loop)
+export interface PrimaryTimeline {
+  blocks: TimelineBlock[];
+  outputDraft?: string; // Generated draft from Output Node
+}
+
+// Secondary Timeline (Production Loop)
+export interface SecondaryTimeline {
+  masterAssets: Asset[]; // Locked master assets
+  shotLists: ShotList[]; // Generated shot lists
+  appliedStyles?: Record<string, string>; // Style applications across shots
+}
+
+export interface ShotList {
+  id: string;
+  masterAssetId: string; // Reference to story master
+  shots: Asset[]; // Individual shot assets
+  createdAt: Date;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  assets: Asset[];
+  primaryTimeline: PrimaryTimeline;
+  secondaryTimeline?: SecondaryTimeline; // Appears after first master asset
+  createdAt: Date;
+  updatedAt: Date;
+  targetModel?: string; // Target AI model for generation (MidJourney, Sora, etc.)
+}
+
+// Enhanced Guided Build Types
 export interface Question {
   id: string;
   text: string;
-  type: 'text' | 'option';
+  type: 'text' | 'option' | 'dropdown';
   options?: string[];
+  optionsKey?: string; // Key to lookup options from FIELD_OPTIONS
+  required?: boolean;
+}
+
+export interface Build {
+  id: string;
+  name: string;
+  description: string;
+  questions: Question[];
+  targetAssetType: Asset['type'];
 }
 
 export interface Workflow {
   id: string;
   name: string;
   description: string;
-  builds?: BuildType[];
+  builds: Build[];
 }
 
-export interface BuildType {
-  id: string;
-  name: string;
-  description: string;
+// Chat and AI Types
+export enum ChatRole {
+  USER = 'USER',
+  MODEL = 'MODEL'
 }
 
+export interface Message {
+  role: ChatRole;
+  content: string;
+}
+
+// Build Context for Iterative Workflows
 export interface BuildContext {
   [key: string]: {
     seeds: Seed[];
+    currentStep?: number;
+    answers?: Record<string, string>;
   };
 }
 
@@ -33,33 +111,12 @@ export interface Seed {
   summary: string;
 }
 
-export enum ChatRole {
-  USER = 'USER',
-  MODEL = 'MODEL'
-}
-
-export interface Message {
-  role: ChatRole;
-  content: string;
-}
-
-// New Project Workspace types
-export interface Asset {
-  id: string;
-  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'video_output' | 'image_output' | 'storyboard_output';
-  name: string;
-  content: string;
-  tags: string[];
-  createdAt: Date;
-  summary: string;
-  metadata?: Record<string, any>;
-}
-
+// Legacy types for backward compatibility (to be removed after transition)
 export interface CanvasNode {
   id: string;
   position: { x: number; y: number };
   size: number;
-  assetId: string; // Reference to the asset this node represents
+  assetId: string;
   name: string;
   description: string;
 }
@@ -77,40 +134,42 @@ export interface CanvasState {
   connections: CanvasConnection[];
 }
 
-export interface Project {
-  id: string;
-  name: string;
-  assets: Asset[];
-  canvas: CanvasState;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Legacy QuantumBox types (for backward compatibility during transition)
+// Quantum Box Types
 export interface Node {
   id: string;
   position: { x: number; y: number };
-  size: number;
-  category: string;
-  type: string;
-  name: string;
-  description: string;
-  nodeType: 'input' | 'option' | 'text' | 'output';
-  value?: string;
-  options?: { value: string; label: string; }[];
-  content?: string;
-  weight?: number;
+  data: any;
 }
 
 export interface Connection {
   id: string;
-  from: string;
-  to: string;
-  type: 'harmony' | 'tension';
-  harmonyLevel: number;
+  source: string;
+  target: string;
 }
 
 export interface NodeGraph {
   nodes: Node[];
   connections: Connection[];
+}
+
+// Timeline Types
+export interface Track {
+  id: string;
+  name: string;
+  type: 'audio' | 'video' | 'text';
+  items: TimelineItem[];
+}
+
+export interface Layer {
+  id: string;
+  name: string;
+  type: 'background' | 'foreground' | 'overlay';
+}
+
+export interface TimelineItem {
+  id: string;
+  trackId: string;
+  start: number;
+  end: number;
+  content: string;
 }

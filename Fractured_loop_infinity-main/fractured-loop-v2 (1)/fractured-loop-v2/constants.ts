@@ -1,20 +1,9 @@
-export type BuildType = {
-  id: string;
-  name: string;
-  description: string;
-};
-
-export type Workflow = {
-  id: string;
-  name: string;
-  description: string;
-  builds?: BuildType[];
-};
+import { Build, Workflow } from './types';
 
 export type TagGroup = string[];
 
 export type AssetTemplate = {
-  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'video_output' | 'image_output' | 'storyboard_output';
+  type: 'character' | 'plot_point' | 'shot_card' | 'master_style' | 'scene' | 'variant_shot' | 'camera_settings' | 'depth_of_field' | 'lighting_setup' | 'color_grading' | 'audio_design' | 'vfx_compositing' | 'master_video' | 'master_image' | 'storyboard_output';
   name: string;
   description: string;
   defaultContent?: string;
@@ -22,79 +11,310 @@ export type AssetTemplate = {
   category: 'primary' | 'secondary' | 'tertiary';
 };
 
-export const BUILDS: BuildType[] = [
+export const BUILDS: Build[] = [
   {
-    id: 'basic',
-    name: 'Basic Build',
-    description: 'A basic build configuration',
+    id: 'storybuild',
+    name: 'Storybuild',
+    description: 'Create compelling narratives with psychological depth using the 7-keyframe emotional structure focusing on Want vs. Need',
+    targetAssetType: 'master_story',
+    questions: [
+      {
+        id: 'genre',
+        text: 'What genre best fits your story?',
+        type: 'dropdown',
+        optionsKey: 'story_genres',
+        required: true
+      },
+      {
+        id: 'tone',
+        text: 'What is the overall tone of your story?',
+        type: 'dropdown',
+        optionsKey: 'story_tones',
+        required: true
+      },
+      {
+        id: 'protagonist_want',
+        text: 'What does your protagonist want? (Their surface-level goal)',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'protagonist_need',
+        text: 'What does your protagonist need? (Their deeper transformation)',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'antagonist_force',
+        text: 'What external force opposes the protagonist?',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_1',
+        text: 'Keyframe 1 - Setup: Establish the world, protagonist\'s want, and initial situation',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_2',
+        text: 'Keyframe 2 - Confrontation: Protagonist faces first challenge, want is threatened',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_3',
+        text: 'Keyframe 3 - Crisis: Major turning point, protagonist questions their want',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_4',
+        text: 'Keyframe 4 - Realization: Protagonist begins to understand their need',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_5',
+        text: 'Keyframe 5 - Climax: Final confrontation with antagonist',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_6',
+        text: 'Keyframe 6 - Resolution: Protagonist achieves need, transforms',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'keyframe_7',
+        text: 'Keyframe 7 - New Beginning: Protagonist enters new world with their transformation',
+        type: 'text',
+        required: true
+      }
+    ]
   },
   {
-    id: 'advanced',
-    name: 'Advanced Build',
-    description: 'An advanced build configuration',
+    id: 'shotbuild',
+    name: 'Shotbuild',
+    description: 'Design cinematic shots with expert camera, lighting, and composition techniques',
+    targetAssetType: 'shot',
+    questions: [
+      {
+        id: 'shot_type',
+        text: 'What type of shot is this?',
+        type: 'dropdown',
+        optionsKey: 'shot_types',
+        required: true
+      },
+      {
+        id: 'camera_movement',
+        text: 'How does the camera move?',
+        type: 'dropdown',
+        optionsKey: 'camera_movements',
+        required: true
+      },
+      {
+        id: 'lighting_style',
+        text: 'What lighting style should be used?',
+        type: 'dropdown',
+        optionsKey: 'lighting_styles',
+        required: true
+      },
+      {
+        id: 'color_palette',
+        text: 'What color palette fits this shot?',
+        type: 'dropdown',
+        optionsKey: 'color_palettes',
+        required: true
+      },
+      {
+        id: 'focal_length',
+        text: 'Camera focal length',
+        type: 'dropdown',
+        optionsKey: 'camera_focal_lengths',
+        required: true
+      },
+      {
+        id: 'aperture',
+        text: 'Camera aperture',
+        type: 'dropdown',
+        optionsKey: 'camera_apertures',
+        required: true
+      },
+      {
+        id: 'mood',
+        text: 'What mood should this shot convey?',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'subject_focus',
+        text: 'What is the main subject and focus of this shot?',
+        type: 'text',
+        required: true
+      }
+    ]
   },
+  {
+    id: 'imgbuild',
+    name: 'Imgbuild',
+    description: 'Generate stunning images with AI models like MidJourney using expert prompts',
+    targetAssetType: 'master_image',
+    questions: [
+      {
+        id: 'style_reference',
+        text: 'Reference artists or styles (e.g., "in the style of Caravaggio")',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'composition',
+        text: 'Describe the composition and framing',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'lighting_mood',
+        text: 'Lighting and mood description',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'color_scheme',
+        text: 'Color scheme and palette',
+        type: 'dropdown',
+        optionsKey: 'color_palettes',
+        required: true
+      },
+      {
+        id: 'resolution',
+        text: 'Desired resolution',
+        type: 'dropdown',
+        optionsKey: 'image_resolutions',
+        required: true
+      },
+      {
+        id: 'aspect_ratio',
+        text: 'Aspect ratio',
+        type: 'dropdown',
+        optionsKey: 'aspect_ratios',
+        required: true
+      }
+    ]
+  },
+  {
+    id: 'vidbuild',
+    name: 'Vidbuild',
+    description: 'Create cinematic videos with AI models like Sora using advanced prompt engineering',
+    targetAssetType: 'master_video',
+    questions: [
+      {
+        id: 'narrative_summary',
+        text: 'Brief narrative summary of the video',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'visual_style',
+        text: 'Overall visual style and aesthetic',
+        type: 'text',
+        required: true
+      },
+      {
+        id: 'camera_work',
+        text: 'Camera movements and techniques',
+        type: 'dropdown',
+        optionsKey: 'camera_movements',
+        required: true
+      },
+      {
+        id: 'pacing',
+        text: 'Pacing and rhythm of the video',
+        type: 'dropdown',
+        optionsKey: 'video_pacing',
+        required: true
+      },
+      {
+        id: 'duration',
+        text: 'Approximate duration',
+        type: 'dropdown',
+        optionsKey: 'video_durations',
+        required: true
+      },
+      {
+        id: 'resolution_fps',
+        text: 'Resolution and frame rate',
+        type: 'dropdown',
+        optionsKey: 'master_video',
+        required: true
+      }
+    ]
+  }
 ];
 
 export const WORKFLOWS: Workflow[] = [
   {
-    id: 'default',
-    name: 'Default Workflow',
-    description: 'The default workflow for the application',
-    builds: BUILDS,
-  },
+    id: 'cinematic_production',
+    name: 'Cinematic Production Workflow',
+    description: 'Complete expert-guided workflow for film production from story to final output',
+    builds: BUILDS
+  }
 ];
 
 export const TAG_GROUPS: Record<string, TagGroup> = {
-  colors: ['red', 'blue', 'green'],
-  shapes: ['circle', 'square', 'triangle'],
+  genres: ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Short', 'Sport', 'Thriller', 'War', 'Western'],
+  tones: ['Dark', 'Hopeful', 'Melancholic', 'Uplifting', 'Suspenseful', 'Humorous', 'Intense', 'Serene', 'Nostalgic', 'Energetic', 'Contemplative', 'Chaotic'],
+  techniques: ['Long Take', 'Montage', 'Slow Motion', 'Flashback', 'Non-linear', 'Parallel Action', 'Jump Cut', 'Match Cut', 'Cross-cutting'],
+  styles: ['Realistic', 'Stylized', 'Abstract', 'Minimalist', 'Ornate', 'Noir', 'Expressionist', 'Surreal', 'Documentary', 'Experimental']
 };
 
 export const ASSET_TEMPLATES: Record<string, AssetTemplate> = {
   character: {
     type: 'character',
     name: 'Character Profile',
-    description: 'Create a detailed character profile with traits, backstory, and appearance',
-    defaultContent: 'Name: \nAge: \nAppearance: \nPersonality: \nBackground: \nGoals: ',
+    description: 'Create character assets for timeline tracks, defining traits, arcs, and psychological depth',
+    defaultContent: 'Name: \nAge: \nAppearance: \nPersonality: \nBackground: \nGoals (Want): \nNeeds (Transformation): \nArc: ',
     tags: ['character'],
     category: 'secondary'
   },
   plot_point: {
     type: 'plot_point',
     name: 'Plot Point',
-    description: 'Define a key event or turning point in your story',
-    defaultContent: 'Event: \nImpact: \nTiming: \nCharacters involved: ',
+    description: 'Define key events in your timeline that drive the story forward',
+    defaultContent: 'Event: \nImpact on Protagonist: \nTiming in Timeline: \nCharacters involved: \nEmotional Keyframe: ',
     tags: ['plot'],
     category: 'secondary'
   },
   shot_card: {
     type: 'shot_card',
     name: 'Shot Card',
-    description: 'Describe a specific camera shot with composition and mood',
-    defaultContent: 'Shot type: \nSubject: \nAngle: \nLighting: \nMood: ',
+    description: 'Design individual shots for timeline layers with cinematic techniques',
+    defaultContent: 'Shot Type: \nCamera Movement: \nLighting: \nComposition: \nMood: \nDuration: \nLayer: ',
     tags: ['shot', 'visual'],
     category: 'secondary'
   },
   master_style: {
     type: 'master_style',
     name: 'Master Style',
-    description: 'Define the overall visual and narrative style for your project',
-    defaultContent: 'Visual style: \nTone: \nColor palette: \nNarrative approach: ',
+    description: 'Define the overall visual and narrative style for your entire timeline project',
+    defaultContent: 'Visual Aesthetic: \nTone: \nColor Palette: \nNarrative Approach: \nCinematic Influences: \nTarget AI Model: ',
     tags: ['style', 'master'],
-    category: 'secondary'
+    category: 'primary'
   },
   scene: {
     type: 'scene',
-    name: 'Scene',
-    description: 'Outline a complete scene with setting, action, and dialogue',
-    defaultContent: 'Setting: \nCharacters: \nAction: \nDialogue: \nPurpose: ',
+    name: 'Scene Track',
+    description: 'Build scene tracks with layered shots, characters, and precise timing for your timeline',
+    defaultContent: 'Scene Title: \nSetting: \nCharacters: \nKey Action: \nEmotional Keyframe: \nDuration: \nLayers: ',
     tags: ['scene'],
-    category: 'secondary'
+    category: 'primary'
   },
   variant_shot: {
     type: 'variant_shot',
     name: 'Variant Shot',
-    description: 'Create variations of a shot with different parameters',
-    defaultContent: 'Base shot: \nVariation: \nChanges: ',
+    description: 'Create variations of shots for different layers or alternative takes',
+    defaultContent: 'Base Shot: \nVariation Type: \nChanges: \nPurpose: ',
     tags: ['shot', 'variant'],
     category: 'secondary'
   },
@@ -102,73 +322,73 @@ export const ASSET_TEMPLATES: Record<string, AssetTemplate> = {
   camera_settings: {
     type: 'camera_settings',
     name: 'Camera Settings',
-    description: 'Configure camera parameters like focal length, aperture, shutter speed',
-    defaultContent: 'Focal Length: \nAperture: \nShutter Speed: \nISO: \nWhite Balance: ',
+    description: 'Configure camera parameters for precise cinematic control in your shots',
+    defaultContent: 'Focal Length: \nAperture: \nShutter Speed: \nISO: \nWhite Balance: \nSensor Size: ',
     tags: ['camera', 'technical'],
     category: 'tertiary'
   },
   depth_of_field: {
     type: 'depth_of_field',
     name: 'Depth of Field (DoF)',
-    description: 'Control focus depth and bokeh effects',
-    defaultContent: 'Focus Distance: \nAperture: \nFocal Length: \nSensor Size: \nBokeh Shape: ',
+    description: 'Control focus depth and bokeh effects for visual storytelling',
+    defaultContent: 'Focus Distance: \nAperture: \nFocal Length: \nSensor Size: \nBokeh Shape: \nFocus Falloff: ',
     tags: ['dof', 'focus', 'technical'],
     category: 'tertiary'
   },
   lighting_setup: {
     type: 'lighting_setup',
     name: 'Lighting Setup',
-    description: 'Define lighting conditions and sources',
-    defaultContent: 'Key Light: \nFill Light: \nBack Light: \nAmbient Light: \nColor Temperature: ',
+    description: 'Define lighting conditions and sources for mood and atmosphere',
+    defaultContent: 'Key Light: \nFill Light: \nBack Light: \nAmbient Light: \nColor Temperature: \nIntensity Ratios: ',
     tags: ['lighting', 'technical'],
     category: 'tertiary'
   },
   color_grading: {
     type: 'color_grading',
     name: 'Color Grading',
-    description: 'Set color correction and grading parameters',
-    defaultContent: 'LUT: \nContrast: \nSaturation: \nBrightness: \nColor Balance: ',
+    description: 'Set color correction and grading parameters for visual consistency',
+    defaultContent: 'LUT: \nContrast: \nSaturation: \nBrightness: \nColor Balance: \nLift/Gamma/Gain: ',
     tags: ['color', 'grading', 'technical'],
     category: 'tertiary'
   },
   audio_design: {
     type: 'audio_design',
     name: 'Audio Design',
-    description: 'Configure sound design and audio elements',
-    defaultContent: 'Background Music: \nSound Effects: \nDialogue: \nMix Levels: \nReverb: ',
+    description: 'Configure sound design and audio elements for immersive storytelling',
+    defaultContent: 'Background Music: \nSound Effects: \nDialogue: \nMix Levels: \nReverb: \nSpatial Audio: ',
     tags: ['audio', 'sound', 'technical'],
     category: 'tertiary'
   },
   vfx_compositing: {
     type: 'vfx_compositing',
     name: 'VFX Compositing',
-    description: 'Set up visual effects and compositing layers',
-    defaultContent: 'Layers: \nBlending Modes: \nKeying: \nTracking: \nEffects: ',
+    description: 'Set up visual effects and compositing layers for enhanced visuals',
+    defaultContent: 'Layers: \nBlending Modes: \nKeying: \nTracking: \nEffects Stack: \nIntegration: ',
     tags: ['vfx', 'compositing', 'technical'],
     category: 'tertiary'
   },
   // Output Nodes
-  video_output: {
-    type: 'video_output',
-    name: 'Video Output',
-    description: 'Generate final video output from connected assets',
-    defaultContent: 'Resolution: \nFrame Rate: \nCodec: \nBitrate: \nFormat: ',
+  master_video: {
+    type: 'master_video',
+    name: 'Master Video',
+    description: 'Generate final video output from your timeline tracks and layers',
+    defaultContent: 'Resolution: \nFrame Rate: \nCodec: \nBitrate: \nFormat: \nColor Space: ',
     tags: ['output', 'video', 'final'],
     category: 'primary'
   },
-  image_output: {
-    type: 'image_output',
-    name: 'Image Output',
-    description: 'Generate final image output from connected assets',
-    defaultContent: 'Resolution: \nFormat: \nQuality: \nColor Space: \nMetadata: ',
+  master_image: {
+    type: 'master_image',
+    name: 'Master Image',
+    description: 'Generate final image output from your visual assets',
+    defaultContent: 'Resolution: \nFormat: \nQuality: \nColor Space: \nMetadata: \nStyle Application: ',
     tags: ['output', 'image', 'final'],
     category: 'primary'
   },
   storyboard_output: {
     type: 'storyboard_output',
     name: 'Storyboard Output',
-    description: 'Generate storyboard from scene and shot assets',
-    defaultContent: 'Layout: \nStyle: \nAnnotations: \nFormat: \nPages: ',
+    description: 'Generate storyboard from your scene tracks and shot layers',
+    defaultContent: 'Layout: \nStyle: \nAnnotations: \nFormat: \nPages: \nTiming Notes: ',
     tags: ['output', 'storyboard', 'final'],
     category: 'primary'
   }
@@ -176,19 +396,71 @@ export const ASSET_TEMPLATES: Record<string, AssetTemplate> = {
 
 export const ALL_TAGS = Object.values(TAG_GROUPS).flat();
 
-export const MASTER_PROMPT = `You are Fractured Loop Infinity, an advanced AI system for film production and creative storytelling. Your role is to generate high-quality, coherent content based on interconnected project assets and their relationships. Consider the harmony and tension between elements to create compelling narratives, visuals, and technical specifications. Always maintain creative integrity while respecting the user's artistic vision.`;
+export const MASTER_PROMPT = `You are Fractured Loop Infinity, an expert AI filmmaker with comprehensive knowledge in narrative theory, character psychology, cinematography, editing principles, and AI prompt engineering. Your expertise spans:
+
+**Narrative Theory:**
+- Hero's Journey (Campbell): Departure, Initiation, Return
+- 7-Keyframe Emotional Structure: Setup, Confrontation, Crisis, Realization, Climax, Resolution, New Beginning
+- Harmon Story Circle: Comfort, Want, Need, Adventure, Struggle, Revelation, Transformation
+- Three-Act Structure with Want vs. Need focus
+
+**Character Psychology:**
+- Archetypes: Hero, Mentor, Threshold Guardian, Herald, Shapeshifter, Shadow, Trickster
+- Internal Conflict: Want (surface goal) vs. Need (deep transformation)
+- Subtext and Motivation: What characters say vs. what they mean
+- Character Arcs: Flat, Positive, Negative, Ambiguous
+
+**Cinematography Techniques:**
+- Camera Movements: Pan, Tilt, Tracking, Crane, Dutch Angle, POV
+- Shot Types: WS, MS, CU, ECU, OTS, Establishing, Reaction
+- Lighting Styles: Three-Point, Motivated, High-Key, Low-Key, Chiaroscuro
+- Composition Rules: Rule of Thirds, Leading Lines, Framing, Depth
+
+**Editing Theory:**
+- Walter Murch's Rule of Six: Emotion, Story, Rhythm, Eye Trace, Two-Dimensional Plane of Screen, Three-Dimensional Space of Action
+- Continuity Editing, Montage, Parallel Action, Flashbacks
+- Pacing and Rhythm in Visual Storytelling
+
+**Screenplay Conventions:**
+- Visual Tense: Present tense for action, past for description
+- Formatting: Scene headings, Action lines, Character names, Dialogue, Parentheticals
+- Transitions: CUT TO, FADE IN, DISSOLVE, etc.
+
+**AI Prompt Engineering:**
+- Target Model Optimization: MidJourney (artistic), Sora (video), Veo (realistic video), etc.
+- Prompt Conversion Tables: Translate cinematic concepts to AI parameters
+- Style References and Artist Influences
+- Technical Specifications: Resolution, Aspect Ratio, Frame Rate
+
+When generating content, consider the harmony and tension between interconnected assets. Maintain creative integrity while respecting the user's vision. Use psychological depth in character development and cinematic expertise in visual design. Always aim for compelling, coherent storytelling that resonates emotionally.`;
 
 // Field options for smart UI components
-export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
+export type FieldOptionsType = Record<string, Record<string, any>>;
+
+export const FIELD_OPTIONS: FieldOptionsType = {
+  story_genres: { options: ['Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Family', 'Fantasy', 'Film-Noir', 'History', 'Horror', 'Music', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Short', 'Sport', 'Thriller', 'War', 'Western'] },
+  story_tones: { options: ['Dark', 'Hopeful', 'Melancholic', 'Uplifting', 'Suspenseful', 'Humorous', 'Intense', 'Serene', 'Nostalgic', 'Energetic', 'Contemplative', 'Chaotic', 'Paranoid', 'Triumphant', 'Bittersweet', 'Foreboding'] },
+  shot_types: { options: ['Extreme Wide Shot (EWS)', 'Wide Shot (WS)', 'Medium Wide Shot (MWS)', 'Medium Shot (MS)', 'Medium Close-Up (MCU)', 'Close-Up (CU)', 'Extreme Close-Up (ECU)', 'Over-the-Shoulder (OTS)', 'Point of View (POV)', 'High Angle', 'Low Angle', 'Dutch Angle', 'Bird\'s Eye', 'Worm\'s Eye', 'Establishing Shot', 'Reaction Shot', 'Cutaway'] },
+  camera_movements: { options: ['Static', 'Slow Push-In', 'Creep-Out', 'The Moment', 'Distraction', 'The Candidate', 'Pan Left', 'Pan Right', 'Tilt Up', 'Tilt Down', 'Tracking Forward', 'Tracking Backward', 'Crane Up', 'Crane Down', 'Handheld', 'Steadicam', 'Drone', 'Aerial', 'Submersible', 'Tripod Shot'] },
+  lighting_styles: { options: ['Natural Daylight', 'Golden Hour', 'Blue Hour', 'Motivated Lighting', 'Three-Point Lighting', 'High-Key', 'Low-Key', 'Chiaroscuro', 'Silhouette', 'Backlit', 'Rim Light', 'Practical Lighting', 'Studio Lighting', 'Candlelight', 'Neon', 'Firelight', 'Moonlight'] },
+  color_palettes: { options: ['Warm (Reds, Oranges)', 'Cool (Blues, Greens)', 'Monochrome', 'Vibrant', 'Muted', 'High Contrast', 'Pastel', 'Sepia', 'Neon', 'Earth Tones', 'Complementary', 'Analogous', 'Teal/Orange', 'Cool/Warm Contrast'] },
+  camera_focal_lengths: { options: ['8mm (Fisheye)', '12mm', '16mm', '24mm', '35mm', '50mm', '85mm', '100mm', '135mm', '200mm', '300mm', '400mm (Telephoto)', '600mm'] },
+  camera_apertures: { options: ['f/1.4', 'f/1.8', 'f/2.0', 'f/2.8', 'f/4.0', 'f/5.6', 'f/8.0', 'f/11', 'f/16', 'f/22'] },
+  image_resolutions: { options: ['512x512', '1024x1024', '2048x2048', '4096x4096', 'HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'] },
+  aspect_ratios: { options: ['1:1 (Square)', '4:3 (Standard)', '16:9 (Widescreen)', '21:9 (Ultrawide)', '9:16 (Vertical)', '2.35:1 (Cinemascope)'] },
+  video_pacing: { options: ['Slow and Deliberate', 'Medium Pacing', 'Fast and Dynamic', 'Variable Rhythm', 'Montage Style'] },
+  video_durations: { options: ['5 seconds', '10 seconds', '15 seconds', '30 seconds', '1 minute', '2 minutes', '5 minutes', '10 minutes'] },
+  video_formats: { options: ['720p 24fps', '1080p 24fps', '1080p 30fps', '4K 24fps', '4K 30fps', '8K 24fps'] },
   video_output: {
     resolution: ['720p', '1080p', '4K', '8K'],
     frame_rate: ['24fps', '25fps', '30fps', '60fps', '120fps'],
     codec: ['H.264', 'H.265', 'VP9', 'AV1', 'ProRes'],
     format: ['MP4', 'MOV', 'AVI', 'MKV', 'WebM'],
-    bitrate: ['Low', 'Medium', 'High', 'Custom']
+    bitrate: ['Low', 'Medium', 'High', 'Custom'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
   },
   image_output: {
-    resolution: ['720p', '1080p', '4K', '8K'],
+    resolution: ['HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'],
     format: ['JPEG', 'PNG', 'TIFF', 'EXR', 'WebP'],
     quality: ['Low', 'Medium', 'High', 'Lossless'],
     color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
@@ -200,10 +472,10 @@ export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
     format: ['PDF', 'PNG', 'JPG', 'SVG']
   },
   camera_settings: {
-    focal_length: ['18mm', '24mm', '35mm', '50mm', '85mm', '100mm', '200mm'],
-    aperture: ['f/1.4', 'f/2.0', 'f/2.8', 'f/4.0', 'f/5.6', 'f/8.0', 'f/11', 'f/16'],
+    focal_length: ['8mm', '12mm', '16mm', '24mm', '35mm', '50mm', '85mm', '100mm', '135mm', '200mm', '300mm', '400mm', '600mm'],
+    aperture: ['f/1.4', 'f/1.8', 'f/2.0', 'f/2.8', 'f/4.0', 'f/5.6', 'f/8.0', 'f/11', 'f/16', 'f/22'],
     shutter_speed: ['1/8000', '1/4000', '1/2000', '1/1000', '1/500', '1/250', '1/125', '1/60', '1/30'],
-    iso: ['100', '200', '400', '800', '1600', '3200', '6400', '12800']
+    iso: ['50', '100', '200', '400', '800', '1600', '3200', '6400', '12800', '25600']
   },
   lighting_setup: {
     key_light: ['Soft', 'Hard', 'Rim', 'Back', 'Fill', 'Motivated'],
@@ -214,34 +486,25 @@ export const FIELD_OPTIONS: Record<string, Record<string, string[]>> = {
     lut: ['None', 'Film Look', 'Teal/Orange', 'Cool', 'Warm', 'Vintage', 'High Contrast', 'Custom'],
     contrast: ['Low', 'Medium', 'High', 'Very High'],
     saturation: ['Desaturated', 'Natural', 'Vibrant', 'Oversaturated']
-  }
-};
-
-// Legacy NodeTemplate for backward compatibility
-export type NodeTemplate = {
-  type: string;
-  nodeType: 'input' | 'output' | 'processing';
-  name: string;
-  description: string;
-};
-
-export const NODE_TEMPLATES: Record<string, NodeTemplate> = {
-  color: {
-    type: 'color',
-    nodeType: 'input',
-    name: 'Color Node',
-    description: 'A node for selecting colors',
   },
-  shape: {
-    type: 'shape',
-    nodeType: 'input',
-    name: 'Shape Node',
-    description: 'A node for selecting shapes',
+  master_video: {
+    resolution: ['720p', '1080p', '4K', '8K'],
+    frame_rate: ['24fps', '25fps', '30fps', '60fps', '120fps'],
+    codec: ['H.264', 'H.265', 'VP9', 'AV1', 'ProRes'],
+    format: ['MP4', 'MOV', 'AVI', 'MKV', 'WebM'],
+    bitrate: ['Low', 'Medium', 'High', 'Custom'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
   },
-  output: {
-    type: 'output',
-    nodeType: 'output',
-    name: 'Output Node',
-    description: 'The final output node',
+  master_image: {
+    resolution: ['HD (1280x720)', 'Full HD (1920x1080)', '4K (3840x2160)', '8K (7680x4320)'],
+    format: ['JPEG', 'PNG', 'TIFF', 'EXR', 'WebP'],
+    quality: ['Low', 'Medium', 'High', 'Lossless'],
+    color_space: ['sRGB', 'Adobe RGB', 'DCI-P3', 'Rec.709', 'Linear']
   },
+  character_arc_types: { options: ['Positive Change', 'Flat Character Arc', 'Negative Character Arc'] },
+  opening_hooks: { options: ['Flashback', 'Flash Forward', 'Mid-story', 'Newsreel', 'The Setting', 'Crime Scene', 'Direct Addressing', 'Tragedy', 'A Day in Life', 'Establishing Shot', 'Chasing Sequence'] },
+  subtext_techniques: { options: ['Conflict', 'Silence', 'Ambiguity', 'Contradiction', 'Actions Over Words', 'Context', 'Body Language'] },
+  archetypes: { options: ['Heroes', 'Shadows', 'Mentors', 'Herald', 'Threshold Guardians', 'Shapeshifters', 'Tricksters', 'Allies', 'Woman as Temptress'] },
+  transition_types: { options: ['Cut', 'Fade In', 'Fade Out', 'Dissolve', 'Wipe', 'Iris', 'Match Cut', 'Jump Cut', 'Cross-fade'] },
+  depth_of_field_options: { options: ['Shallow (Subject Isolation)', 'Medium (Natural)', 'Deep (Landscape)', 'Rack Focus', 'Split Diopter'] }
 };

@@ -6,31 +6,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Assistant Director</title>
     <style>
-      @keyframes atom-spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+      /* Cinematic Dark Theme */
+      body {
+        background: radial-gradient(ellipse at center, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+        color: #e2e8f0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
       }
+
+      /* Timeline Track Header */
+      .timeline-track-header {
+        background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+        border-bottom: 1px solid #4a5568;
+        padding: 12px 16px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #cbd5e0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Asset Chip */
+      .asset-chip {
+        background: linear-gradient(135deg, #2b6cb0 0%, #3182ce 100%);
+        border: 1px solid #4299e1;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 13px;
+        font-weight: 500;
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(66, 153, 225, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .asset-chip:hover {
+        background: linear-gradient(135deg, #3182ce 0%, #4299e1 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+      }
+
+      .asset-chip.selected {
+        background: linear-gradient(135deg, #38a169 0%, #48bb78 100%);
+        border-color: #68d391;
+        box-shadow: 0 4px 16px rgba(104, 211, 145, 0.4);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.8; }
+      }
+
+      /* Layer Container */
+      .layer-container {
+        background: rgba(26, 32, 44, 0.8);
+        border: 1px solid #4a5568;
+        border-radius: 6px;
+        margin: 8px 0;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+      }
+
+      .layer-container:hover {
+        border-color: #718096;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 10px rgba(113, 128, 150, 0.2);
+      }
+
+      /* Pure CSS Tooltip */
+      [data-tooltip] {
+        position: relative;
+        cursor: help;
+      }
+
+      [data-tooltip]:before {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #2d3748;
+        color: #e2e8f0;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        border: 1px solid #4a5568;
+      }
+
+      [data-tooltip]:after {
+        content: '';
+        position: absolute;
+        bottom: calc(100% - 5px);
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #2d3748;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      [data-tooltip]:hover:before,
+      [data-tooltip]:hover:after {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Atom Spinner (kept for loading states) */
+      @keyframes atom-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
       .atom-spinner {
         display: inline-block;
         position: relative;
         width: 48px;
         height: 48px;
       }
+
       .atom-spinner-inner {
         position: relative;
         width: 100%;
         height: 100%;
       }
+
       .orbit {
         position: absolute;
-        border: 2px solid #4f46e5; /* Indigo-600 */
+        border: 2px solid #4299e1;
         border-radius: 50%;
         animation: atom-spin 2s linear infinite;
       }
+
       .orbit1 {
         width: 48px;
         height: 48px;
@@ -38,6 +159,7 @@
         left: 0;
         animation-duration: 2s;
       }
+
       .orbit2 {
         width: 36px;
         height: 36px;
@@ -46,6 +168,7 @@
         animation-duration: 3s;
         animation-direction: reverse;
       }
+
       .orbit3 {
         width: 24px;
         height: 24px;
@@ -53,18 +176,19 @@
         left: 12px;
         animation-duration: 1.5s;
       }
+
       .core {
         position: absolute;
         top: 18px;
         left: 18px;
         width: 12px;
         height: 12px;
-        background-color: #4f46e5; /* Indigo-600 */
+        background-color: #4299e1;
         border-radius: 50%;
       }
     </style>
-  <script type="module" crossorigin src="/assets/index-Bl-CkTQn.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-Bwhinmpd.css">
+  <script type="module" crossorigin src="/assets/index-Bx0FeW0s.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D7BpdCqO.css">
 </head>
   <body class="bg-gray-900 text-white">
     <div id="root"></div>
